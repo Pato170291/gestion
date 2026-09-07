@@ -1,8 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Clientes</title>
+@extends('layouts.app')
+
+@section('title', 'Clientes')
+
+@section('content')
+
     <style>
         table {
             width: 100%;
@@ -71,6 +72,14 @@
         #paginacion span {
             background-color: #cccccc;
             color: black;
+        }
+
+        #buscar {
+            width: 400px;
+            padding: 10px 12px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
         }
 
     </style>
@@ -203,5 +212,4 @@
 
     </script>
 
-</body>
-</html>
+@endsection
