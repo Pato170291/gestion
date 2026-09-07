@@ -20,6 +20,8 @@ class ClienteController extends Controller
         } else {
             $clientes = Cliente::paginate(6);
         }
+
+        $clientes->appends(['buscar' => $buscar]);
         
         if($request->ajax()) {
             return view('partials.clientes-ajax', compact('clientes'));

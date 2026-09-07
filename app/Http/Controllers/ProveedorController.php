@@ -22,6 +22,8 @@ class ProveedorController extends Controller
             $proveedores = Proveedor::paginate(6);
         }
 
+        $proveedores->appends(['buscar' => $buscar]);
+
         if ($request->ajax()) {
             return view('partials.proveedores-ajax', compact('proveedores'));
         }

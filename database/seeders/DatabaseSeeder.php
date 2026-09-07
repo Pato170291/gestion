@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Cliente;
+use App\Models\Proveedor;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,5 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         Cliente::factory(100)->create();
+
+        Proveedor::factory()->count(20)->create();
     }
 }

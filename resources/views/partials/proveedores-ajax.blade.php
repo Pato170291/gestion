@@ -1,7 +1,9 @@
-<div id="filas-proveedores">
-    @include('partials.proveedores-rows')
-</div>
+<table>
+    <tbody id="filas-proveedores">
 
-<div id="botones-paginacion-proveedores">
-    {{ $proveedores->links() }}
-</div>
+        @include('partials.proveedores-rows')
+
+    </tbody>
+</table>
+
+@include('partials.paginacion-generica', ['paginador' => $proveedores])

@@ -176,6 +176,8 @@
                 tablaClientes.innerHTML = filas.innerHTML;
                 paginacion.innerHTML = botones.innerHTML;
 
+                history.pushState({}, '', url);
+
             });
         }
 

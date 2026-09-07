@@ -147,7 +147,7 @@
             </tr>
         </thead>
 
-        <tbody>
+        <tbody id="tabla-proveedores">
 
             @include('partials.proveedores-rows')
 
@@ -156,10 +156,64 @@
     </table>
 
     <div id="paginacion">
-        <div id="botones-paginacion-proveedores">
-            {{ $proveedores->links() }}
-        </div>
+        @include('partials.paginacion-generica', ['paginador' => $proveedores])
     </div>
 
+    <script>
+        const inputBuscar = document.getElementById('buscar');
+        const tablaProveedores = document.getElementById('tabla-proveedores');
+        const paginacion = document.getElementById('paginacion');
+
+        let tiempoEspera;
+
+        function cargarProveedores(url) {
+
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+
+                const documento = new DOMParser().parseFromString(html, 'text/html');
+
+                const filas = documento.querySelector('#filas-proveedores');
+                const botones = documento.querySelector('#botones-paginacion-proveedores');
+
+                tablaProveedores.innerHTML = filas.innerHTML;
+                paginacion.innerHTML = botones.innerHTML;
+
+                history.pushState({}, '', url);
+            });
+        }
+
+        inputBuscar.addEventListener('input', function () {
+
+            clearTimeout(tiempoEspera);
+
+            tiempoEspera = setTimeout(function () {
+
+                const buscar = inputBuscar.value;
+
+                const url = buscar
+                    ? `/proveedores?buscar=${encodeURIComponent(buscar)}`
+                    : '/proveedores';
+
+                cargarProveedores(url);
+
+            }, 300);
+        });
+
+        paginacion.addEventListener('click', function (event) {
+
+            if (event.target.tagName === 'A') {
+
+                event.preventDefault();
+
+                cargarProveedores(event.target.href);
+            }
+        });
+    </script>
 
 @endsection
