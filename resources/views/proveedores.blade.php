@@ -49,6 +49,12 @@
             background-color: #f8f8f8;
         }
 
+        th:last-child,
+        td:last-child {
+            width: 145px;
+            white-space: nowrap;
+        }
+
         a,
         button {
             display: inline-block;
@@ -60,7 +66,8 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            margin-right: 5px;
+            margin-right: 2px;
+            padding: 6px 8px;
         }
 
         form {
@@ -108,6 +115,109 @@
             border: 1px solid #ccc;
             border-radius: 6px;
         }
+
+        .enlace-crear-proveedor {
+            display: inline-block;
+            margin-top: 10px;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .enlace-crear-proveedor:hover {
+            background-color: #d7ebff;
+            box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);
+            transform: translateY(-2px);
+        }
+
+        #form-busqueda button,
+        #tabla-completa tbody td:last-child a,
+        #tabla-completa tbody td:last-child button {
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        #form-busqueda button:hover,
+        #tabla-completa tbody td:last-child a:hover,
+        #tabla-completa tbody td:last-child button:hover {
+            background-color: #d7ebff;
+            box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .detalle-proveedor {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: flex-end;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: 900;
+        }
+
+        .detalle-proveedor.oculto {
+            display: none;
+        }
+
+        .detalle-proveedor-contenido {
+            width: min(460px, 100%);
+            height: 100%;
+            padding: 30px;
+            overflow-y: auto;
+            background: white;
+            box-shadow: -4px 0 14px rgba(0, 0, 0, 0.2);
+        }
+
+        .detalle-proveedor-encabezado {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .detalle-proveedor-encabezado h2 {
+            margin: 0;
+        }
+
+        .cerrar-detalle-proveedor {
+            margin: 0;
+            padding: 4px 10px;
+            font-size: 22px;
+        }
+
+        .saldo-proveedor-destacado {
+            margin: 20px 0;
+            padding: 18px;
+            background: #f8f8f8;
+            border: 1px solid #dddddd;
+        }
+
+        .saldo-proveedor-destacado strong,
+        .saldo-proveedor-final strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 24px;
+        }
+
+        .movimientos-proveedor {
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .movimientos-proveedor td {
+            padding: 8px 0;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .saldo-proveedor-final {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 18px;
+            border-top: 1px solid #cccccc;
+        }
+
+        .registrar-pago-proveedor {
+            width: 100%;
+            margin-top: 24px;
+            padding: 12px;
+        }
     </style>
 
     <h1>Listado de proveedores</h1>
@@ -128,7 +238,7 @@
 
     <br>
 
-    <a href="/proveedores/crear">+ Crear nuevo proveedor</a>
+    <a href="/proveedores/crear" class="enlace-crear-proveedor">+ Crear nuevo proveedor</a>
 
     <br><br>
 
@@ -142,6 +252,7 @@
                 <th>Email</th>
                 <th>Dirección</th>
                 <th>CUIT</th>
+                <th>Saldo</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -159,12 +270,89 @@
         @include('partials.paginacion-generica', ['paginador' => $proveedores])
     </div>
 
+    <div id="detalle-proveedor" class="detalle-proveedor oculto" aria-hidden="true">
+        <aside class="detalle-proveedor-contenido" role="dialog" aria-modal="true" aria-labelledby="detalle-proveedor-titulo">
+            <div class="detalle-proveedor-encabezado">
+                <h2 id="detalle-proveedor-titulo">Proveedor</h2>
+                <button type="button" class="cerrar-detalle-proveedor" aria-label="Cerrar detalle">&times;</button>
+            </div>
+
+            <div class="saldo-proveedor-destacado">
+                <span>SALDO A PAGAR</span>
+                <strong>$0</strong>
+            </div>
+
+            <h3>CUENTA CORRIENTE</h3>
+
+            <table class="movimientos-proveedor">
+                <tbody>
+                    <tr>
+                        <td>08/09</td>
+                        <td>Sin movimientos</td>
+                        <td>$0</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="saldo-proveedor-final">
+                <span>Saldo</span>
+                <strong>$0</strong>
+            </div>
+
+            <button type="button" class="registrar-pago-proveedor" disabled>Registrar pago</button>
+        </aside>
+    </div>
+
     <script>
         const inputBuscar = document.getElementById('buscar');
         const tablaProveedores = document.getElementById('tabla-proveedores');
         const paginacion = document.getElementById('paginacion');
+        const detalleProveedor = document.getElementById('detalle-proveedor');
+        const detalleProveedorTitulo = document.getElementById('detalle-proveedor-titulo');
+        const cerrarDetalleProveedor = detalleProveedor.querySelector('.cerrar-detalle-proveedor');
 
         let tiempoEspera;
+
+        function cerrarDetalleProveedorPanel() {
+            detalleProveedor.classList.add('oculto');
+            detalleProveedor.setAttribute('aria-hidden', 'true');
+        }
+
+        tablaProveedores.addEventListener('click', function (event) {
+            const boton = event.target.closest('.boton-ver-proveedor');
+
+            if (!boton) {
+                return;
+            }
+
+            detalleProveedorTitulo.textContent = `Proveedor: ${boton.dataset.nombre}`;
+            detalleProveedor.classList.remove('oculto');
+            detalleProveedor.setAttribute('aria-hidden', 'false');
+        });
+
+        cerrarDetalleProveedor.addEventListener('click', cerrarDetalleProveedorPanel);
+
+        detalleProveedor.addEventListener('click', function (event) {
+            if (event.target === detalleProveedor) {
+                cerrarDetalleProveedorPanel();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                cerrarDetalleProveedorPanel();
+            }
+        });
 
         function cargarProveedores(url) {
 

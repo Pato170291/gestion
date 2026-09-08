@@ -16,7 +16,7 @@
 
         <br><br>
 
-        <label>Contacto:</label>
+        <label>Contacto (opcional):</label>
         <input type="text" name="contacto" value="{{ $proveedor->contacto }}">
 
         <br><br>
@@ -26,17 +26,17 @@
 
         <br><br>
 
-        <label>Email:</label>
+        <label>Email (opcional):</label>
         <input type="email" name="email" value="{{ $proveedor->email }}">
 
         <br><br>
 
-        <label>Dirección:</label>
+        <label>Dirección (opcional):</label>
         <input type="text" name="direccion" value="{{ $proveedor->direccion }}">
 
         <br><br>
 
-        <label>CUIT:</label>
+        <label>CUIT (opcional):</label>
         <input type="text" name="cuit" value="{{ $proveedor->cuit }}">
 
         <br><br>

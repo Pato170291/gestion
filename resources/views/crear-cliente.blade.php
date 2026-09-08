@@ -59,7 +59,7 @@
 
         <br><br>
 
-        <label>Email:</label>
+        <label>Email (opcional):</label>
         <input type="email" name="email" value="{{ old('email') }}">
 
         <br><br>

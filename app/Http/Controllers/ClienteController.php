@@ -16,9 +16,13 @@ class ClienteController extends Controller
                 ->orWhere('apellido', 'like', "%$buscar%")
                 ->orWhere('telefono', 'like', "%$buscar%")
                 ->orWhere('email', 'like', "%$buscar%")
+                ->orderByDesc('updated_at')
+                ->orderByDesc('id')
                 ->paginate(6);
         } else {
-            $clientes = Cliente::paginate(6);
+            $clientes = Cliente::orderByDesc('updated_at')
+                ->orderByDesc('id')
+                ->paginate(6);
         }
 
         $clientes->appends(['buscar' => $buscar]);
@@ -42,7 +46,7 @@ class ClienteController extends Controller
                 'nombre' => 'required|string|max:255',
                 'apellido' => 'required|string|max:255',
                 'telefono' => 'required|numeric',
-                'email' => 'required|email|unique:clientes,email',
+                'email' => 'nullable|email|unique:clientes,email',
             ],
             
             [
@@ -51,7 +55,6 @@ class ClienteController extends Controller
                 'telefono.required' => 'El campo teléfono es obligatorio.',
                 'telefono.numeric' => 'El campo teléfono debe ser un número.',
                 'telefono.max' => 'El campo teléfono no puede tener más de 30 dígitos.',
-                'email.required' => 'El campo correo electrónico es obligatorio.',
                 'email.email' => 'El campo correo electrónico debe ser una dirección de correo válida.',
                 'email.unique' => 'El correo electrónico ya está en uso.',
             ]
@@ -89,7 +92,7 @@ class ClienteController extends Controller
             'nombre' => 'required|regex:/^[\pL\s]+$/u|max:255',
             'apellido' => 'required|regex:/^[\pL\s]+$/u|max:255',
             'telefono' => 'required|numeric',
-            'email' => 'required|email|unique:clientes,email,' . $id,
+            'email' => 'nullable|email|unique:clientes,email,' . $id,
         ]);
 
         $cliente->nombre = $request->input('nombre');

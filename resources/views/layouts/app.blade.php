@@ -115,6 +115,8 @@
 
             <a href="/compras" class="{{ request()->is('compras*') ? 'activo' : '' }}">Compras</a>
 
+            <a href="/caja" class="{{ request()->is('caja*') ? 'activo' : '' }}">Caja</a>
+
             <a href="/stock" class="{{ request()->is('stock*') ? 'activo' : '' }}">Stock</a>
 
             <a href="/reportes" class="{{ request()->is('reportes*') ? 'activo' : '' }}">Reportes</a>

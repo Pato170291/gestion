@@ -49,7 +49,7 @@
 
         <br><br>
 
-        <label>Contacto:</label>
+        <label>Contacto (opcional):</label>
         <input type="text" name="contacto" value="{{ old('contacto') }}">
 
         <br><br>
@@ -59,17 +59,17 @@
 
         <br><br>
 
-        <label>Email:</label>
+        <label>Email (opcional):</label>
         <input type="email" name="email" value="{{ old('email') }}">
 
         <br><br>
 
-        <label>Dirección:</label>
+        <label>Dirección (opcional):</label>
         <input type="text" name="direccion" value="{{ old('direccion') }}">
 
         <br><br>
 
-        <label>CUIT:</label>
+        <label>CUIT (opcional):</label>
         <input type="text" name="cuit" value="{{ old('cuit') }}">
 
         <br><br>

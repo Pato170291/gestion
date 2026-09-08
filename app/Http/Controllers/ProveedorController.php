@@ -17,9 +17,13 @@ class ProveedorController extends Controller
                 ->orWhere('telefono', 'like', "%$buscar%")
                 ->orWhere('email', 'like', "%$buscar%")
                 ->orWhere('cuit', 'like', "%$buscar%")
+                ->orderByDesc('updated_at')
+                ->orderByDesc('id')
                 ->paginate(6);
         } else {
-            $proveedores = Proveedor::paginate(6);
+            $proveedores = Proveedor::orderByDesc('updated_at')
+                ->orderByDesc('id')
+                ->paginate(6);
         }
 
         $proveedores->appends(['buscar' => $buscar]);
@@ -41,29 +45,25 @@ class ProveedorController extends Controller
     {
         $request->validate([
             'empresa' => 'required|max:255',
-            'contacto' => 'required|max:255',
+            'contacto' => 'nullable|max:255',
             'telefono' => 'required|numeric',
-            'email' => 'required|email',
-            'direccion' => 'required|max:255',
-            'cuit' => ['required', 'max:20', 'regex:/^[0-9]+$/'],
+            'email' => 'nullable|email',
+            'direccion' => 'nullable|max:255',
+            'cuit' => ['nullable', 'max:20', 'regex:/^[0-9]+$/'],
             'activo' => 'required|boolean',
         ], [
             'empresa.required' => 'La empresa es obligatoria.',
             'empresa.max' => 'La empresa no puede superar los 255 caracteres.',
 
-            'contacto.required' => 'El contacto es obligatorio.',
             'contacto.max' => 'El contacto no puede superar los 255 caracteres.',
 
             'telefono.required' => 'El teléfono es obligatorio.',
             'telefono.numeric' => 'El teléfono debe contener solamente números.',
 
-            'email.required' => 'El email es obligatorio.',
             'email.email' => 'El email no tiene un formato válido.',
 
-            'direccion.required' => 'La dirección es obligatoria.',
             'direccion.max' => 'La dirección no puede superar los 255 caracteres.',
 
-            'cuit.required' => 'El CUIT es obligatorio.',
             'cuit.max' => 'El CUIT no puede superar los 20 caracteres.',
             'cuit.regex' => 'El CUIT debe contener solamente números, sin guiones ni espacios.',
 
@@ -96,11 +96,11 @@ class ProveedorController extends Controller
     {
         $request->validate([
             'empresa' => 'required|max:255',
-            'contacto' => 'required|max:255',
+            'contacto' => 'nullable|max:255',
             'telefono' => 'required|numeric',
-            'email' => 'required|email',
-            'direccion' => 'required|max:255',
-            'cuit' => ['required', 'max:20', 'regex:/^[0-9]+$/'],
+            'email' => 'nullable|email',
+            'direccion' => 'nullable|max:255',
+            'cuit' => ['nullable', 'max:20', 'regex:/^[0-9]+$/'],
             'activo' => 'required|boolean',
         ], 
         
@@ -108,19 +108,15 @@ class ProveedorController extends Controller
             'empresa.required' => 'La empresa es obligatoria.',
             'empresa.max' => 'La empresa no puede superar los 255 caracteres.',
 
-            'contacto.required' => 'El contacto es obligatorio.',
             'contacto.max' => 'El contacto no puede superar los 255 caracteres.',
 
             'telefono.required' => 'El teléfono es obligatorio.',
             'telefono.numeric' => 'El teléfono debe contener solamente números.',
 
-            'email.required' => 'El email es obligatorio.',
             'email.email' => 'El email no tiene un formato válido.',
 
-            'direccion.required' => 'La dirección es obligatoria.',
             'direccion.max' => 'La dirección no puede superar los 255 caracteres.',
 
-            'cuit.required' => 'El CUIT es obligatorio.',
             'cuit.max' => 'El CUIT no puede superar los 20 caracteres.',
             'cuit.regex' => 'El CUIT debe contener solamente números, sin guiones ni espacios.',
 
