@@ -7,9 +7,30 @@ use Illuminate\Http\Request;
 
 class ProductoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $productos = Producto::orderBy('id')->get();
+        $buscar = trim($request->input('buscar', ''));
+
+        $consulta = Producto::orderBy('id');
+
+        if ($buscar !== '') {
+            $consulta->where(function ($query) use ($buscar) {
+                $query->where('nombre', 'like', "%{$buscar}%")
+                    ->orWhere('marca', 'like', "%{$buscar}%")
+                    ->orWhere('descripcion', 'like', "%{$buscar}%")
+                    ->orWhere('proveedor', 'like', "%{$buscar}%")
+                    ->orWhere('precio_compra', 'like', "%{$buscar}%")
+                    ->orWhere('precio_venta', 'like', "%{$buscar}%")
+                    ->orWhere('stock_actual', 'like', "%{$buscar}%")
+                    ->orWhere('stock_minimo', 'like', "%{$buscar}%");
+            });
+        }
+
+        $productos = $consulta->paginate(6)->appends(['buscar' => $buscar]);
+
+        if ($request->ajax()) {
+            return view('partials.productos-ajax', compact('productos'));
+        }
 
         return view('productos', compact('productos'));
     }

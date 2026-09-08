@@ -147,6 +147,37 @@
             margin-top: 24px;
             margin-bottom: 8px;
         }
+
+        #paginacion-productos {
+            margin-top: 20px;
+        }
+
+        #paginacion-productos nav {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #paginacion-productos a,
+        #paginacion-productos span {
+            display: inline-block;
+            padding: 6px 10px;
+            margin-right: 5px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        #paginacion-productos a {
+            background-color: #eeeeee;
+            color: black;
+        }
+
+        #paginacion-productos span {
+            background-color: #cccccc;
+            color: black;
+        }
     </style>
 
     @if (session('success'))
@@ -182,6 +213,7 @@
             type="text"
             id="buscar-producto"
             class="buscar-producto"
+            value="{{ request('buscar') }}"
             placeholder="Buscar por nombre, precio o stock"
         >
         <button type="submit">Buscar</button>
@@ -201,46 +233,14 @@
                 <th>Acciones</th>
             </tr>
         </thead>
-        <tbody>
-            @forelse ($productos as $producto)
-                <tr class="fila-producto">
-                    <td>{{ $producto->id }}</td>
-                    <td>{{ $producto->nombre }}</td>
-                    <td>${{ number_format($producto->precio_venta, 0, ',', '.') }}</td>
-                    <td>{{ $producto->stock_actual }}</td>
-                    <td>
-                        <button
-                            type="button"
-                            class="boton-ver-producto"
-                            data-producto="{{ $producto->id }}"
-                            aria-label="Ver producto {{ $producto->nombre }}"
-                            title="Ver producto"
-                        >&#128065;</button>
-                        <a
-                            href="/productos/{{ $producto->id }}/editar"
-                            aria-label="Editar producto {{ $producto->nombre }}"
-                            title="Editar producto"
-                        >&#9998;</a>
-                        <form method="POST" action="/productos/{{ $producto->id }}">
-                            @csrf
-                            @method('DELETE')
-
-                            <button
-                                type="submit"
-                                aria-label="Eliminar producto"
-                                title="Eliminar producto"
-                                onclick="return confirm('¿Seguro que querés eliminar este producto?')"
-                            >&#128465;</button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5">No hay productos registrados.</td>
-                </tr>
-            @endforelse
+        <tbody id="filas-productos">
+            @include('partials.productos-rows')
         </tbody>
     </table>
+
+    <div id="paginacion-productos">
+        @include('partials.paginacion-productos', ['paginador' => $productos])
+    </div>
 
     <div id="detalle-producto" class="detalle-producto oculto" aria-hidden="true">
         <aside class="detalle-producto-contenido" role="dialog" aria-modal="true" aria-labelledby="detalle-producto-titulo">
@@ -292,13 +292,14 @@
     <script>
         const formularioBusquedaProductos = document.getElementById('form-busqueda-productos');
         const inputBuscarProducto = document.getElementById('buscar-producto');
-        const filasProductos = document.querySelectorAll('.fila-producto');
-        const cuerpoTablaProductos = document.querySelector('#tabla-productos tbody');
+        const filasProductos = document.getElementById('filas-productos');
+        const cuerpoTablaProductos = filasProductos;
+        const paginacionProductos = document.getElementById('paginacion-productos');
         const detalleProducto = document.getElementById('detalle-producto');
         const cerrarDetalleProducto = detalleProducto.querySelector('.cerrar-detalle-producto');
         const detalleTitulo = document.getElementById('detalle-producto-titulo');
 
-        const datosProductos = JSON.parse(document.getElementById('datos-productos').textContent);
+        let datosProductos = JSON.parse(document.getElementById('datos-productos').textContent);
 
         function formatearPrecio(valor) {
             return '$' + Number(valor).toLocaleString('es-AR', {
@@ -316,41 +317,6 @@
 
             return `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
-
-        function filtrarProductos() {
-            const textoBusqueda = inputBuscarProducto.value.trim().toLowerCase();
-            let productosVisibles = 0;
-
-            filasProductos.forEach(function (fila) {
-                const coincide = fila.textContent.toLowerCase().includes(textoBusqueda);
-
-                fila.style.display = coincide ? '' : 'none';
-
-                if (coincide) {
-                    productosVisibles++;
-                }
-            });
-
-            const mensajeSinProductos = document.getElementById('mensaje-sin-productos');
-
-            if (productosVisibles === 0) {
-                if (!mensajeSinProductos) {
-                    const filaVacia = document.createElement('tr');
-                    filaVacia.id = 'mensaje-sin-productos';
-                    filaVacia.innerHTML = '<td colspan="5">No se encontraron productos.</td>';
-                    cuerpoTablaProductos.appendChild(filaVacia);
-                }
-            } else if (mensajeSinProductos) {
-                mensajeSinProductos.remove();
-            }
-        }
-
-        inputBuscarProducto.addEventListener('input', filtrarProductos);
-
-        formularioBusquedaProductos.addEventListener('submit', function (event) {
-            event.preventDefault();
-            filtrarProductos();
-        });
 
         function mostrarDetalleProducto(producto) {
             detalleTitulo.textContent = `Producto: ${producto.nombre}`;
@@ -374,10 +340,63 @@
             detalleProducto.setAttribute('aria-hidden', 'true');
         }
 
-        document.querySelectorAll('.boton-ver-producto').forEach(function (boton) {
-            boton.addEventListener('click', function () {
+        filasProductos.addEventListener('click', function (event) {
+            const boton = event.target.closest('.boton-ver-producto');
+
+            if (boton) {
                 mostrarDetalleProducto(datosProductos[boton.dataset.producto]);
+            }
+        });
+
+        function cargarProductos(url) {
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const documento = new DOMParser().parseFromString(html, 'text/html');
+                const filas = documento.querySelector('#filas-productos-ajax');
+                const paginacion = documento.querySelector('#botones-paginacion-productos');
+                const nuevosDatos = documento.querySelector('#datos-productos-ajax');
+
+                filasProductos.innerHTML = filas.innerHTML;
+                paginacionProductos.innerHTML = paginacion.innerHTML;
+                datosProductos = JSON.parse(nuevosDatos.textContent);
+                history.pushState({}, '', url);
             });
+        }
+
+        let tiempoEsperaBusqueda;
+
+        function buscarProductos() {
+            const buscar = inputBuscarProducto.value.trim();
+            const url = buscar
+                ? `/productos?buscar=${encodeURIComponent(buscar)}`
+                : '/productos';
+
+            cargarProductos(url);
+        }
+
+        inputBuscarProducto.addEventListener('input', function () {
+            clearTimeout(tiempoEsperaBusqueda);
+
+            tiempoEsperaBusqueda = setTimeout(buscarProductos, 300);
+        });
+
+        formularioBusquedaProductos.addEventListener('submit', function (event) {
+            event.preventDefault();
+            buscarProductos();
+        });
+
+        paginacionProductos.addEventListener('click', function (event) {
+            const enlace = event.target.closest('a');
+
+            if (enlace) {
+                event.preventDefault();
+                cargarProductos(enlace.href);
+            }
         });
 
         cerrarDetalleProducto.addEventListener('click', ocultarDetalleProducto);
