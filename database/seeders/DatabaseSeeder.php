@@ -8,6 +8,7 @@ use App\Models\Cliente;
 use App\Models\Proveedor;
 use App\Models\Producto;
 use App\Models\Venta;
+use App\Models\Compra;
 
 class DatabaseSeeder extends Seeder
 {
@@ -25,5 +26,7 @@ class DatabaseSeeder extends Seeder
         Producto::factory()->count(80)->create();
 
         Venta::factory()->count(60)->create();
+
+        Compra::factory()->count(60)->create();
     }
 }

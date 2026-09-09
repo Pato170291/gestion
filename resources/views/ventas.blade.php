@@ -422,7 +422,7 @@
     </div>
 
     <script type="application/json" id="datos-ventas">
-        @json($ventas)
+        @json($ventas->items())
     </script>
 
     <div id="modal-nueva-venta" class="modal-venta-formulario oculto" aria-hidden="true">

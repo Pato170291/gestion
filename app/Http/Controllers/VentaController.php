@@ -15,7 +15,9 @@ class VentaController extends Controller
     public function index(Request $request)
     {
         $clientes = Cliente::orderBy('nombre')->orderBy('apellido')->get();
+
         $buscar = trim($request->input('buscar', ''));
+
         $consulta = Venta::with(['cliente', 'detalles', 'pagos'])
             ->orderByDesc('fecha')
             ->orderByDesc('id');
@@ -32,7 +34,9 @@ class VentaController extends Controller
             });
         }
 
-        $ventas = $consulta->paginate(6)->appends(['buscar' => $buscar]);
+        $ventas = $consulta->paginate(6)->appends([
+            'buscar' => $buscar
+        ]);
 
         if ($request->ajax()) {
             return view('partials.ventas-ajax', compact('ventas'));
@@ -61,11 +65,15 @@ class VentaController extends Controller
             'formas_pago.*' => 'required|in:efectivo,tarjeta,transferencia,cuenta_corriente',
             'montos_pago' => 'nullable|array',
             'montos_pago.*' => 'nullable|numeric|min:0',
+        ], [
+            'formas_pago.required' => 'Seleccione al menos una forma de pago.',
+            'formas_pago.min' => 'Seleccione al menos una forma de pago.',
         ]);
 
         $cantidad = (int) $validated['cantidad'];
         $precio = round((float) $validated['precio'], 2);
         $total = round($cantidad * $precio, 2);
+
         $formasPago = $validated['formas_pago'];
         $montos = [];
 
@@ -74,24 +82,47 @@ class VentaController extends Controller
         } else {
             foreach ($formasPago as $formaPago) {
                 if (!array_key_exists($formaPago, $validated['montos_pago'] ?? [])) {
-                    return back()->withErrors(['montos_pago' => 'Debe indicar el monto de cada forma de pago.'])->withInput();
+                    return back()
+                        ->withErrors([
+                            'montos_pago' => 'Debe indicar el monto de cada forma de pago.'
+                        ])
+                        ->withInput();
                 }
 
-                $montos[$formaPago] = round((float) $validated['montos_pago'][$formaPago], 2);
+                $montos[$formaPago] = round(
+                    (float) $validated['montos_pago'][$formaPago],
+                    2
+                );
             }
         }
 
-        $totalPagado = round(array_sum($montos), 2);
+        $totalPagado = round(
+            array_sum(
+                array_filter(
+                    $montos,
+                    fn ($formaPago) => $formaPago !== 'cuenta_corriente',
+                    ARRAY_FILTER_USE_KEY
+                )
+            ),
+            2
+        );
 
         if ($totalPagado > $total) {
-            return back()->withErrors(['montos_pago' => 'La suma de los pagos no puede superar el total de la venta.'])->withInput();
+            return back()
+                ->withErrors([
+                    'montos_pago' => 'La suma de los pagos no puede superar el total de la venta.'
+                ])
+                ->withInput();
         }
 
         $estado = $totalPagado >= $total
             ? 'Pagado'
             : ($totalPagado > 0 ? 'Parcial' : 'Pendiente');
 
-        $productoId = $validated['producto_id'] === 'otro' ? null : $validated['producto_id'];
+        $productoId = $validated['producto_id'] === 'otro'
+            ? null
+            : $validated['producto_id'];
+
         $productoNombre = 'Otro';
 
         if ($productoId !== null) {
@@ -99,7 +130,17 @@ class VentaController extends Controller
             $productoNombre = $producto->nombre;
         }
 
-        DB::transaction(function () use ($validated, $total, $totalPagado, $estado, $productoId, $productoNombre, $cantidad, $precio, $montos) {
+        DB::transaction(function () use (
+            $validated,
+            $total,
+            $totalPagado,
+            $estado,
+            $productoId,
+            $productoNombre,
+            $cantidad,
+            $precio,
+            $montos
+        ) {
             $venta = Venta::create([
                 'fecha' => $validated['fecha'],
                 'cliente_id' => $validated['cliente_id'] ?? null,
@@ -126,7 +167,8 @@ class VentaController extends Controller
             }
         });
 
-        return redirect('/ventas')->with('success', 'Venta guardada correctamente.');
+        return redirect('/ventas')
+            ->with('success', 'Venta guardada correctamente.');
     }
 
     public function show($id)
@@ -137,10 +179,18 @@ class VentaController extends Controller
     public function edit($id)
     {
         $venta = Venta::with(['detalles', 'pagos'])->findOrFail($id);
-        $clientes = Cliente::orderBy('nombre')->orderBy('apellido')->get();
+
+        $clientes = Cliente::orderBy('nombre')
+            ->orderBy('apellido')
+            ->get();
+
         $productos = Producto::orderBy('nombre')->get();
 
-        return view('editar-venta', compact('venta', 'clientes', 'productos'));
+        return view('editar-venta', compact(
+            'venta',
+            'clientes',
+            'productos'
+        ));
     }
 
     public function update(Request $request, $id)
@@ -157,11 +207,15 @@ class VentaController extends Controller
             'formas_pago.*' => 'required|in:efectivo,tarjeta,transferencia,cuenta_corriente',
             'montos_pago' => 'nullable|array',
             'montos_pago.*' => 'nullable|numeric|min:0',
+        ], [
+            'formas_pago.required' => 'Seleccione al menos una forma de pago.',
+            'formas_pago.min' => 'Seleccione al menos una forma de pago.',
         ]);
 
         $cantidad = (int) $validated['cantidad'];
         $precio = round((float) $validated['precio'], 2);
         $total = round($cantidad * $precio, 2);
+
         $formasPago = $validated['formas_pago'];
         $montos = [];
 
@@ -170,24 +224,47 @@ class VentaController extends Controller
         } else {
             foreach ($formasPago as $formaPago) {
                 if (!array_key_exists($formaPago, $validated['montos_pago'] ?? [])) {
-                    return back()->withErrors(['montos_pago' => 'Debe indicar el monto de cada forma de pago.'])->withInput();
+                    return back()
+                        ->withErrors([
+                            'montos_pago' => 'Debe indicar el monto de cada forma de pago.'
+                        ])
+                        ->withInput();
                 }
 
-                $montos[$formaPago] = round((float) $validated['montos_pago'][$formaPago], 2);
+                $montos[$formaPago] = round(
+                    (float) $validated['montos_pago'][$formaPago],
+                    2
+                );
             }
         }
 
-        $totalPagado = round(array_sum($montos), 2);
+        $totalPagado = round(
+            array_sum(
+                array_filter(
+                    $montos,
+                    fn ($formaPago) => $formaPago !== 'cuenta_corriente',
+                    ARRAY_FILTER_USE_KEY
+                )
+            ),
+            2
+        );
 
         if ($totalPagado > $total) {
-            return back()->withErrors(['montos_pago' => 'La suma de los pagos no puede superar el total de la venta.'])->withInput();
+            return back()
+                ->withErrors([
+                    'montos_pago' => 'La suma de los pagos no puede superar el total de la venta.'
+                ])
+                ->withInput();
         }
 
         $estado = $totalPagado >= $total
             ? 'Pagado'
             : ($totalPagado > 0 ? 'Parcial' : 'Pendiente');
 
-        $productoId = $validated['producto_id'] === 'otro' ? null : $validated['producto_id'];
+        $productoId = $validated['producto_id'] === 'otro'
+            ? null
+            : $validated['producto_id'];
+
         $productoNombre = 'Otro';
 
         if ($productoId !== null) {
@@ -195,7 +272,18 @@ class VentaController extends Controller
             $productoNombre = $producto->nombre;
         }
 
-        DB::transaction(function () use ($venta, $validated, $total, $totalPagado, $estado, $productoId, $productoNombre, $cantidad, $precio, $montos) {
+        DB::transaction(function () use (
+            $venta,
+            $validated,
+            $total,
+            $totalPagado,
+            $estado,
+            $productoId,
+            $productoNombre,
+            $cantidad,
+            $precio,
+            $montos
+        ) {
             $venta->update([
                 'fecha' => $validated['fecha'],
                 'cliente_id' => $validated['cliente_id'] ?? null,
@@ -205,6 +293,7 @@ class VentaController extends Controller
             ]);
 
             $venta->detalles()->delete();
+
             $venta->detalles()->create([
                 'producto_id' => $productoId,
                 'producto_nombre' => $productoNombre,
@@ -214,6 +303,7 @@ class VentaController extends Controller
             ]);
 
             $venta->pagos()->delete();
+
             foreach ($montos as $formaPago => $monto) {
                 $venta->pagos()->create([
                     'forma_pago' => $formaPago,
@@ -222,7 +312,8 @@ class VentaController extends Controller
             }
         });
 
-        return redirect('/ventas')->with('success', 'Venta actualizada correctamente.');
+        return redirect('/ventas')
+            ->with('success', 'Venta actualizada correctamente.');
     }
 
     public function destroy($id)
@@ -235,6 +326,7 @@ class VentaController extends Controller
             $venta->delete();
         });
 
-        return redirect('/ventas')->with('success', 'Venta eliminada correctamente.');
+        return redirect('/ventas')
+            ->with('success', 'Venta eliminada correctamente.');
     }
 }

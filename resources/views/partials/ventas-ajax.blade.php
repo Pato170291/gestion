@@ -7,5 +7,5 @@
 @include('partials.paginacion-ventas', ['paginador' => $ventas])
 
 <script type="application/json" id="datos-ventas-ajax">
-    @json($ventas)
+    @json($ventas->items())
 </script>

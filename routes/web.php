@@ -5,6 +5,7 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentaController;
+use App\Http\Controllers\CompraController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -44,9 +45,15 @@ Route::get('/ventas/{id}/editar', [VentaController::class, 'edit'])->name('venta
 Route::put('/ventas/{id}', [VentaController::class, 'update'])->name('ventas.update');
 Route::delete('/ventas/{id}', [VentaController::class, 'destroy'])->name('ventas.destroy');
 
-Route::get('/compras', function () {
-    return view('compras');
-});
+// Rutas para compras
+
+Route::get('/compras', [CompraController::class, 'index'])->name('compras.index');
+Route::get('/compras/crear', [CompraController::class, 'crear'])->name('compras.crear');
+Route::post('/compras', [CompraController::class, 'store'])->name('compras.store');
+Route::get('/compras/{id}', [CompraController::class, 'show'])->name('compras.show');
+Route::get('/compras/{id}/editar', [CompraController::class, 'edit'])->name('compras.edit');
+Route::put('/compras/{id}', [CompraController::class, 'update'])->name('compras.update');
+Route::delete('/compras/{id}', [CompraController::class, 'destroy'])->name('compras.destroy');
 
 Route::get('/caja', function () {
     return view('caja');

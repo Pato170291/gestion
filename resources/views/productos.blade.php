@@ -75,11 +75,13 @@
         }
 
         #form-busqueda-productos button,
+        .productos-tabla tbody td:last-child a,
         .productos-tabla tbody td:last-child button {
             transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
         #form-busqueda-productos button:hover,
+        .productos-tabla tbody td:last-child a:hover,
         .productos-tabla tbody td:last-child button:hover {
             background-color: #d7ebff;
             box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);

@@ -22,6 +22,11 @@
         .formas-pago-opciones { display: grid; gap: 10px; margin-top: 8px; }
         .forma-pago-opcion { display: flex; align-items: center; gap: 8px; }
         .forma-pago-opcion input[type="checkbox"] { width: 17px; height: 17px; margin: 0; }
+        .selector-venta-linea { display: flex; align-items: flex-end; gap: 10px; }
+        .selector-venta-linea .campo-venta { flex: 1; }
+        .selector-venta-linea .boton-venta { margin-bottom: 16px; white-space: nowrap; }
+        .error-forma-pago { display: none; margin-top: 8px; color: #842029; }
+        .error-forma-pago.visible { display: block; }
         .montos-pago { display: grid; gap: 12px; margin-top: 16px; }
         .monto-pago.oculto { display: none; }
     </style>
@@ -55,33 +60,39 @@
                 <input type="date" id="fecha-venta" name="fecha" value="{{ old('fecha', $venta->fecha->format('Y-m-d')) }}" required>
             </div>
 
-            <div class="campo-venta">
-                <label for="cliente-venta">Cliente</label>
-                <select id="cliente-venta" name="cliente_id">
-                    <option value="">No es cliente</option>
-                    @foreach ($clientes as $cliente)
-                        <option value="{{ $cliente->id }}" {{ (string) old('cliente_id', $venta->cliente_id) === (string) $cliente->id ? 'selected' : '' }}>
-                            {{ $cliente->nombre }} {{ $cliente->apellido }}
-                        </option>
-                    @endforeach
-                </select>
+            <div class="selector-venta-linea">
+                <div class="campo-venta">
+                    <label for="cliente-venta">Cliente (opcional)</label>
+                    <select id="cliente-venta" name="cliente_id">
+                        <option value="">No es cliente</option>
+                        @foreach ($clientes as $cliente)
+                            <option value="{{ $cliente->id }}" {{ (string) old('cliente_id', $venta->cliente_id) === (string) $cliente->id ? 'selected' : '' }}>
+                                {{ $cliente->nombre }} {{ $cliente->apellido }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="button" class="boton-venta" id="abrir-nuevo-cliente">+ Nuevo cliente</button>
             </div>
         </fieldset>
 
         <fieldset class="grupo-venta">
             <legend>Producto</legend>
 
-            <div class="campo-venta">
-                <label for="producto-venta">Producto</label>
-                <select id="producto-venta" name="producto_id" required>
-                    <option value="">Seleccione un producto</option>
-                    <option value="otro" {{ $productoSeleccionado === 'otro' ? 'selected' : '' }}>Otro</option>
-                    @foreach ($productos as $producto)
-                        <option value="{{ $producto->id }}" data-precio="{{ $producto->precio_venta }}" {{ (string) $productoSeleccionado === (string) $producto->id ? 'selected' : '' }}>
-                            {{ $producto->nombre }}
-                        </option>
-                    @endforeach
-                </select>
+            <div class="selector-venta-linea">
+                <div class="campo-venta">
+                    <label for="producto-venta">Producto</label>
+                    <select id="producto-venta" name="producto_id" required>
+                        <option value="">Seleccione un producto</option>
+                        <option value="otro" {{ $productoSeleccionado === 'otro' ? 'selected' : '' }}>Otro</option>
+                        @foreach ($productos as $producto)
+                            <option value="{{ $producto->id }}" data-precio="{{ $producto->precio_venta }}" {{ (string) $productoSeleccionado === (string) $producto->id ? 'selected' : '' }}>
+                                {{ $producto->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="button" class="boton-venta" id="abrir-nuevo-producto-venta">+ Nuevo producto</button>
             </div>
 
             <div class="campo-venta">
@@ -114,17 +125,28 @@
                     </div>
                 @endforeach
             </div>
+            <div id="error-forma-pago" class="error-forma-pago">Seleccione al menos una forma de pago.</div>
         </fieldset>
 
         <button type="submit" class="boton-venta">Guardar cambios</button>
         <a href="/ventas" class="boton-venta">Cancelar</a>
     </form>
 
+    @include('partials.modal-altas-rapidas', [
+        'mostrarCliente' => true,
+        'mostrarProducto' => true,
+        'campoPrecioProducto' => 'precio_venta',
+        'selectorCliente' => 'cliente-venta',
+        'selectorProducto' => 'producto-venta',
+    ])
+
     <script>
         const selectorProducto = document.getElementById('producto-venta');
         const precioProducto = document.getElementById('precio-venta');
         const opcionesPago = document.querySelectorAll('input[name="formas_pago[]"]');
         const montosPago = document.querySelectorAll('.monto-pago');
+        const errorFormaPago = document.getElementById('error-forma-pago');
+        const formularioVenta = document.querySelector('.formulario-venta');
 
         function actualizarPrecioProducto() {
             const opcion = selectorProducto.selectedOptions[0];
@@ -138,6 +160,7 @@
                 return opcion.checked;
             });
             const mostrarMontos = seleccionadas.length > 1;
+            errorFormaPago.classList.toggle('visible', seleccionadas.length === 0);
 
             montosPago.forEach(function (campo) {
                 const checkbox = document.querySelector('input[name="formas_pago[]"][value="' + campo.dataset.formaPago + '"]');
@@ -151,6 +174,17 @@
             opcion.addEventListener('change', actualizarMontosPago);
         });
         actualizarMontosPago();
+        formularioVenta.addEventListener('submit', function (event) {
+            const hayFormaDePago = Array.from(opcionesPago).some(function (opcion) {
+                return opcion.checked;
+            });
+
+            errorFormaPago.classList.toggle('visible', !hayFormaDePago);
+
+            if (!hayFormaDePago) {
+                event.preventDefault();
+            }
+        });
     </script>
 
 @endsection

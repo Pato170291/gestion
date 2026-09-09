@@ -73,6 +73,13 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            text-decoration: none;
+            color: black;
+        }
+
+        .boton-producto:hover {
+            background: #d7ebff;
+            box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);
         }
 
         .selector-proveedor-linea {

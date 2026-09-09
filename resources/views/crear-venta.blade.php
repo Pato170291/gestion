@@ -336,7 +336,7 @@
 
             <div class="selector-cliente-linea">
                 <div class="campo-venta">
-                    <label for="cliente-venta">Cliente</label>
+                    <label for="cliente-venta">Cliente (opcional)</label>
                     <select id="cliente-venta" name="cliente_id">
                         <option value="">No es cliente</option>
                         @foreach ($clientes as $cliente)
