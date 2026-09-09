@@ -83,6 +83,13 @@ class ProveedorController extends Controller
 
         $proveedor->save();
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Proveedor cargado con éxito.',
+                'proveedor' => $proveedor,
+            ]);
+        }
+
         return redirect('/proveedores')->with('success', 'Proveedor creado exitosamente');
     }
 

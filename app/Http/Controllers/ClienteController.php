@@ -67,6 +67,13 @@ class ClienteController extends Controller
         $cliente->email = $request->input('email');
         $cliente->save();
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Cliente cargado con éxito.',
+                'cliente' => $cliente,
+            ]);
+        }
+
         return redirect('/clientes') ->with('success', 'Cliente creado exitosamente.');
     }
 

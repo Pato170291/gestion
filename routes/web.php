@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\VentaController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -27,17 +28,21 @@ Route::delete('/proveedores/{id}', [ProveedorController::class, 'destroy'])->nam
 
 // Rutas para productos
 Route::get('/productos', [ProductoController::class, 'index'])->name('productos.index');
+Route::get('/productos/crear', [ProductoController::class, 'crear'])->name('productos.crear');
+Route::post('/productos', [ProductoController::class, 'store'])->name('productos.store');
 Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
 Route::get('/productos/{id}/editar', [ProductoController::class, 'edit'])->name('productos.edit');
 Route::put('/productos/{id}', [ProductoController::class, 'update'])->name('productos.update');
 
-Route::get('/productos/crear', function () {
-    return view('crear-producto');
-})->name('productos.crear');
+// Rutas para ventas
 
-Route::get('/ventas', function () {
-    return view('ventas');
-});
+Route::get('/ventas', [VentaController::class, 'index'])->name('ventas.index');
+Route::get('/ventas/crear', [VentaController::class, 'crear'])->name('ventas.crear');
+Route::post('/ventas', [VentaController::class, 'store'])->name('ventas.store');
+Route::get('/ventas/{id}', [VentaController::class, 'show'])->name('ventas.show');
+Route::get('/ventas/{id}/editar', [VentaController::class, 'edit'])->name('ventas.edit');
+Route::put('/ventas/{id}', [VentaController::class, 'update'])->name('ventas.update');
+Route::delete('/ventas/{id}', [VentaController::class, 'destroy'])->name('ventas.destroy');
 
 Route::get('/compras', function () {
     return view('compras');

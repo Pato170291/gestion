@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Cliente;
 use App\Models\Proveedor;
 use App\Models\Producto;
+use App\Models\Venta;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,5 +23,7 @@ class DatabaseSeeder extends Seeder
         Proveedor::factory()->count(20)->create();
 
         Producto::factory()->count(80)->create();
+
+        Venta::factory()->count(60)->create();
     }
 }

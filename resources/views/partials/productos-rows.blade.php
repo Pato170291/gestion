@@ -5,13 +5,6 @@
         <td>${{ number_format($producto->precio_venta, 0, ',', '.') }}</td>
         <td>{{ $producto->stock_actual }}</td>
         <td>
-            <button
-                type="button"
-                class="boton-ver-producto"
-                data-producto="{{ $producto->id }}"
-                aria-label="Ver producto {{ $producto->nombre }}"
-                title="Ver producto"
-            >&#128065;</button>
             <a
                 href="/productos/{{ $producto->id }}/editar"
                 aria-label="Editar producto {{ $producto->nombre }}"
@@ -28,6 +21,13 @@
                     onclick="return confirm('¿Seguro que querés eliminar este producto?')"
                 >&#128465;</button>
             </form>
+            <button
+                type="button"
+                class="boton-ver-producto"
+                data-producto="{{ $producto->id }}"
+                aria-label="Ver producto {{ $producto->nombre }}"
+                title="Ver producto"
+            >&#128065;</button>
         </td>
     </tr>
 @empty
