@@ -19,7 +19,7 @@ class VentaController extends Controller
         $buscar = trim($request->input('buscar', ''));
 
         $consulta = Venta::with(['cliente', 'detalles', 'pagos'])
-            ->orderByDesc('fecha')
+            ->orderByDesc('updated_at')
             ->orderByDesc('id');
 
         if ($buscar !== '') {

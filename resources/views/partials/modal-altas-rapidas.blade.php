@@ -6,6 +6,40 @@
     $selectorProducto = $selectorProducto ?? 'producto-venta';
     $selectorProveedor = $selectorProveedor ?? 'proveedor-compra';
     $selectorCliente = $selectorCliente ?? 'cliente-venta';
+    $configuraciones = [];
+
+    if ($mostrarCliente) {
+        $configuraciones[] = [
+            'modal' => 'modal-alta-cliente',
+            'form' => 'form-alta-cliente',
+            'error' => 'error-alta-cliente',
+            'endpoint' => '/clientes',
+            'selector' => $selectorCliente,
+            'tipo' => 'cliente',
+        ];
+    }
+
+    if ($mostrarProveedor) {
+        $configuraciones[] = [
+            'modal' => 'modal-alta-proveedor',
+            'form' => 'form-alta-proveedor',
+            'error' => 'error-alta-proveedor',
+            'endpoint' => '/proveedores',
+            'selector' => $selectorProveedor,
+            'tipo' => 'proveedor',
+        ];
+    }
+
+    if ($mostrarProducto) {
+        $configuraciones[] = [
+            'modal' => 'modal-alta-producto',
+            'form' => 'form-alta-producto',
+            'error' => 'error-alta-producto',
+            'endpoint' => '/productos',
+            'selector' => $selectorProducto,
+            'tipo' => 'producto',
+        ];
+    }
 @endphp
 
 <style>
@@ -92,13 +126,11 @@
     </div>
 @endif
 
+<script type="application/json" id="configuraciones-alta-rapida">@json($configuraciones)</script>
+
 <script>
     (function () {
-        const configuraciones = [
-            @if ($mostrarCliente) { modal: 'modal-alta-cliente', form: 'form-alta-cliente', error: 'error-alta-cliente', endpoint: '/clientes', selector: @json($selectorCliente), tipo: 'cliente' }, @endif
-            @if ($mostrarProveedor) { modal: 'modal-alta-proveedor', form: 'form-alta-proveedor', error: 'error-alta-proveedor', endpoint: '/proveedores', selector: @json($selectorProveedor), tipo: 'proveedor' }, @endif
-            @if ($mostrarProducto) { modal: 'modal-alta-producto', form: 'form-alta-producto', error: 'error-alta-producto', endpoint: '/productos', selector: @json($selectorProducto), tipo: 'producto' } @endif
-        ];
+        const configuraciones = JSON.parse(document.getElementById('configuraciones-alta-rapida').textContent);
 
         function cerrar(id) { const modal = document.getElementById(id); if (modal) { modal.classList.add('oculto'); modal.setAttribute('aria-hidden', 'true'); } }
         function abrir(id) { const modal = document.getElementById(id); if (modal) { modal.classList.remove('oculto'); modal.setAttribute('aria-hidden', 'false'); } }
@@ -132,11 +164,21 @@
             });
         });
 
-        @if ($mostrarCliente) document.getElementById('abrir-nuevo-cliente').addEventListener('click', function () { abrir('modal-alta-cliente'); }); @endif
-        @if ($mostrarProveedor) document.getElementById('abrir-nuevo-proveedor-compra')?.addEventListener('click', function () { abrir('modal-alta-proveedor'); }); @endif
-        @if ($mostrarProducto)
-            (document.getElementById('abrir-nuevo-producto-compra') || document.getElementById('abrir-nuevo-producto-venta'))?.addEventListener('click', function () { abrir('modal-alta-producto'); });
-        @endif
-        @if ($mostrarProducto && $campoPrecioProducto === 'precio_venta') document.getElementById('producto-venta').addEventListener('change', function () { const opcion = this.selectedOptions[0]; if (opcion && opcion.dataset.precio) document.getElementById('precio-venta').value = opcion.dataset.precio; }); @endif
+        const botonesModal = {
+            'modal-alta-cliente': 'abrir-nuevo-cliente',
+            'modal-alta-proveedor': 'abrir-nuevo-proveedor-compra',
+            'modal-alta-producto': 'abrir-nuevo-producto-compra'
+        };
+
+        configuraciones.forEach(function (configuracion) {
+            const botonId = configuracion.modal === 'modal-alta-producto' && document.getElementById('abrir-nuevo-producto-venta')
+                ? 'abrir-nuevo-producto-venta'
+                : botonesModal[configuracion.modal];
+            const boton = document.getElementById(botonId);
+
+            if (boton) {
+                boton.addEventListener('click', function () { abrir(configuracion.modal); });
+            }
+        });
     })();
 </script>

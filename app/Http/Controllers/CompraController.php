@@ -16,7 +16,7 @@ class CompraController extends Controller
     {
         $buscar = trim($request->input('buscar', ''));
         $consulta = Compra::with(['proveedor', 'detalles', 'pagos'])
-            ->orderByDesc('fecha')
+            ->orderByDesc('updated_at')
             ->orderByDesc('id');
 
         if ($buscar !== '') {
