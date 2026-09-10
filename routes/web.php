@@ -6,6 +6,7 @@ use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\CompraController;
+use App\Http\Controllers\CajaController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -55,9 +56,11 @@ Route::get('/compras/{id}/editar', [CompraController::class, 'edit'])->name('com
 Route::put('/compras/{id}', [CompraController::class, 'update'])->name('compras.update');
 Route::delete('/compras/{id}', [CompraController::class, 'destroy'])->name('compras.destroy');
 
-Route::get('/caja', function () {
-    return view('caja');
-});
+// Rutas para caja
+
+Route::get('/caja', [CajaController::class, 'index'])->name('caja.index');
+Route::post('/caja/abrir', [CajaController::class, 'abrir'])->name('caja.abrir');
+Route::post('/caja/cerrar', [CajaController::class, 'cerrar'])->name('caja.cerrar');
 
 Route::get('/stock', function () {
     return view('stock');

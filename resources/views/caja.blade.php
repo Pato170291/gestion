@@ -11,10 +11,17 @@
         .caja-meta { display: flex; flex-wrap: wrap; gap: 10px 18px; color: #555; font-size: 14px; }
         .caja-estado { display: inline-flex; align-items: center; gap: 7px; font-weight: bold; color: #176b3a; }
         .caja-estado::before { width: 9px; height: 9px; border-radius: 50%; background: #28a745; content: ''; }
+        .caja-estado.cerrada { color: #a83a3a; }
+        .caja-estado.cerrada::before { background: #dc3545; }
+        .caja-mensaje { margin-bottom: 20px; padding: 12px 16px; border: 1px solid; }
+        .caja-mensaje-exito { position: fixed; top: 20px; right: 20px; margin-bottom: 0; padding: 15px 20px; border: 0; border-radius: 8px; background: #28a745; color: white; box-shadow: 0 4px 10px rgba(0, 0, 0, .2); z-index: 1000; }
+        .caja-mensaje-error { border-color: #f5c2c7; background: #f8d7da; color: #842029; }
         .caja-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
-        .boton-caja { display: inline-block; padding: 9px 14px; background: #eee; border: 1px solid #ccc; border-radius: 4px; color: #000; cursor: pointer; font-size: 14px; text-decoration: none; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-        .boton-caja:hover { background: #d7ebff; box-shadow: 0 4px 10px rgba(0, 91, 170, .2); transform: translateY(-2px); }
+        .boton-caja { display: inline-block; padding: 9px 14px; background: #eee; border: 1px solid #ccc; border-radius: 4px; color: #000; cursor: default; font-size: 14px; text-decoration: none; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+        .boton-caja:hover { background: #d7ebff; box-shadow: 0 4px 10px rgba(0, 91, 170, .2); cursor: pointer; transform: translateY(-2px); }
         .boton-caja-principal { background: #d7ebff; border-color: #9ec8eb; }
+        .boton-caja-abrir { background: #eee; border-color: #ccc; }
+        .boton-caja-abrir:hover { background: #d7ebff; border-color: #9ec8eb; }
         .caja-resumen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
         .caja-tarjeta { min-height: 124px; padding: 20px; border: 1px solid #ddd; border-radius: 6px; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .05); }
         .caja-tarjeta-etiqueta { margin-bottom: 14px; color: #666; font-size: 14px; }
@@ -36,8 +43,8 @@
         .caja-tipo.egreso { background: #f8d7da; color: #842029; }
         .caja-monto.ingreso { color: #176b3a; font-weight: bold; }
         .caja-monto.egreso { color: #a83a3a; font-weight: bold; }
-        .caja-accion-ojo { padding: 5px 9px; background: #eee; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 15px; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-        .caja-accion-ojo:hover { background: #d7ebff; box-shadow: 0 4px 10px rgba(0, 91, 170, .2); transform: translateY(-2px); }
+        .caja-accion-ojo { padding: 5px 9px; background: #eee; border: 1px solid #ccc; border-radius: 4px; cursor: default; font-size: 15px; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+        .caja-accion-ojo:hover { background: #d7ebff; box-shadow: 0 4px 10px rgba(0, 91, 170, .2); cursor: pointer; transform: translateY(-2px); }
         .caja-vacia { padding: 24px 10px; color: #666; text-align: center; }
         .modal-caja { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0, 0, 0, .35); z-index: 900; }
         .modal-caja.oculto { display: none; }
@@ -51,6 +58,8 @@
         .caja-resumen-cierre { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-bottom: 22px; }
         .caja-resumen-cierre div { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #eee; }
         .caja-resumen-cierre strong { color: #222; }
+        .caja-diferencia-negativa { color: #a83a3a !important; }
+        .caja-diferencia-positiva { color: #176b3a !important; }
         @media (max-width: 850px) {
             .caja-encabezado { align-items: flex-start; flex-direction: column; }
             .caja-resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -65,6 +74,11 @@
     </style>
 
     @php
+        $saldoInicial = $caja ? (float) $caja->saldo_inicial : 0;
+        $cajaAbierta = $caja && $caja->estado === 'abierta';
+        $ingresosCierre = 0;
+        $egresosCierre = 0;
+        $saldoEsperado = $saldoInicial + $ingresosCierre - $egresosCierre;
         $movimientos = [
             ['id' => 1, 'fecha' => '09/09/2026', 'concepto' => 'Venta #25', 'tipo' => 'Ingreso', 'medio' => 'Efectivo', 'monto' => 20000, 'observacion' => 'Venta registrada'],
             ['id' => 2, 'fecha' => '09/09/2026', 'concepto' => 'Venta #26', 'tipo' => 'Ingreso', 'medio' => 'Transferencia', 'monto' => 15000, 'observacion' => 'Venta registrada'],
@@ -76,26 +90,48 @@
         ];
     @endphp
 
+    @if (session('success'))
+        <div id="mensaje-exito-caja" class="caja-mensaje caja-mensaje-exito">✓ {{ session('success') }}</div>
+
+        <script>
+            setTimeout(function () {
+                const mensaje = document.getElementById('mensaje-exito-caja');
+                if (mensaje) mensaje.style.display = 'none';
+            }, 3000);
+        </script>
+    @endif
+
+    @if (session('error'))
+        <div class="caja-mensaje caja-mensaje-error">{{ session('error') }}</div>
+    @endif
+
+    @if ($errors->any())
+        <div class="caja-mensaje caja-mensaje-error">{{ $errors->first() }}</div>
+    @endif
+
     <div class="caja-pagina">
         <div class="caja-encabezado">
             <div>
                 <h1>Caja</h1>
                 <div class="caja-meta">
-                    <span>Fecha: {{ now()->format('d/m/Y') }}</span>
-                    <span class="caja-estado">Caja abierta</span>
+                    <span>Fecha: {{ \Carbon\Carbon::parse($fechaActual)->format('d/m/Y') }}</span>
+                    <span class="caja-estado {{ $cajaAbierta ? '' : 'cerrada' }}">{{ $cajaAbierta ? 'Caja abierta' : 'Caja cerrada' }}</span>
                 </div>
             </div>
             <div class="caja-acciones">
-                <button type="button" class="boton-caja boton-caja-principal" data-abrir-modal="modal-apertura-caja">Abrir caja</button>
-                <button type="button" class="boton-caja" data-abrir-modal="modal-cierre-caja">Cerrar caja</button>
+                @if ($cajaAbierta)
+                    <button type="button" class="boton-caja" data-abrir-modal="modal-cierre-caja">Cerrar caja</button>
+                @elseif (!$caja)
+                    <button type="button" class="boton-caja boton-caja-abrir" data-abrir-modal="modal-apertura-caja">Abrir caja</button>
+                @endif
             </div>
         </div>
 
         <section class="caja-resumen" aria-label="Resumen de caja">
-            <article class="caja-tarjeta"><div class="caja-tarjeta-etiqueta">Saldo inicial</div><div class="caja-tarjeta-valor">$50.000</div></article>
-            <article class="caja-tarjeta ingresos"><div class="caja-tarjeta-etiqueta">Ingresos</div><div class="caja-tarjeta-valor">$125.500</div></article>
-            <article class="caja-tarjeta egresos"><div class="caja-tarjeta-etiqueta">Egresos</div><div class="caja-tarjeta-valor">$42.300</div></article>
-            <article class="caja-tarjeta"><div class="caja-tarjeta-etiqueta">Saldo actual</div><div class="caja-tarjeta-valor">$133.200</div></article>
+            <article class="caja-tarjeta"><div class="caja-tarjeta-etiqueta">Saldo inicial</div><div class="caja-tarjeta-valor">${{ number_format($saldoInicial, 0, ',', '.') }}</div></article>
+            <article class="caja-tarjeta ingresos"><div class="caja-tarjeta-etiqueta">Ingresos</div><div class="caja-tarjeta-valor">-</div></article>
+            <article class="caja-tarjeta egresos"><div class="caja-tarjeta-etiqueta">Egresos</div><div class="caja-tarjeta-valor">-</div></article>
+            <article class="caja-tarjeta"><div class="caja-tarjeta-etiqueta">Saldo actual</div><div class="caja-tarjeta-valor">-</div></article>
         </section>
 
         <section class="caja-seccion">
@@ -116,7 +152,7 @@
             <table class="caja-tabla"><thead><tr><th></th><th>Fecha</th><th>Saldo inicial</th><th>Ingresos</th><th>Egresos</th><th>Saldo final</th><th>Diferencia</th><th>Estado</th></tr></thead>
                 <tbody>
                     @foreach ($cierres as $cierre)
-                        <tr><td><button type="button" class="caja-accion-ojo" data-cierre="{{ $cierre['id'] }}" aria-label="Ver cierre">&#128065;</button></td><td>{{ $cierre['fecha'] }}</td><td>${{ number_format($cierre['inicial'], 0, ',', '.') }}</td><td class="caja-monto ingreso">+${{ number_format($cierre['ingresos'], 0, ',', '.') }}</td><td class="caja-monto egreso">-${{ number_format($cierre['egresos'], 0, ',', '.') }}</td><td>${{ number_format($cierre['final'], 0, ',', '.') }}</td><td>${{ number_format($cierre['diferencia'], 0, ',', '.') }}</td><td>{{ $cierre['estado'] }}</td></tr>
+                        <tr><td><button type="button" class="caja-accion-ojo" data-cierre="{{ $cierre['id'] }}" aria-label="Ver cierre" title="Ver detalle">&#128065;</button></td><td>{{ $cierre['fecha'] }}</td><td>${{ number_format($cierre['inicial'], 0, ',', '.') }}</td><td class="caja-monto ingreso">+${{ number_format($cierre['ingresos'], 0, ',', '.') }}</td><td class="caja-monto egreso">-${{ number_format($cierre['egresos'], 0, ',', '.') }}</td><td>${{ number_format($cierre['final'], 0, ',', '.') }}</td><td>${{ number_format($cierre['diferencia'], 0, ',', '.') }}</td><td>{{ $cierre['estado'] }}</td></tr>
                     @endforeach
                 </tbody>
             </table>
@@ -141,18 +177,25 @@
     <div id="modal-apertura-caja" class="modal-caja oculto" aria-hidden="true">
         <section class="modal-caja-contenido" role="dialog" aria-modal="true" aria-labelledby="titulo-apertura-caja">
             <div class="modal-caja-encabezado"><h2 id="titulo-apertura-caja">Abrir caja</h2><button type="button" class="cerrar-modal-caja" data-cerrar-modal="modal-apertura-caja" aria-label="Cerrar">&times;</button></div>
-            <p>Esta pantalla está preparada para registrar el saldo inicial de una jornada.</p>
-            <div class="campo-caja"><label for="saldo-inicial-caja">Saldo inicial</label><input id="saldo-inicial-caja" type="number" min="0" step="0.01" value="50000"></div>
-            <button type="button" class="boton-caja" data-cerrar-modal="modal-apertura-caja">Cancelar</button><button type="button" class="boton-caja boton-caja-principal" data-cerrar-modal="modal-apertura-caja">Confirmar apertura</button>
+            <p>Ingresá el saldo inicial de la jornada de hoy.</p>
+            <form method="POST" action="{{ route('caja.abrir') }}">
+                @csrf
+                <div class="campo-caja"><label for="saldo-inicial-caja">Saldo inicial</label><input id="saldo-inicial-caja" name="saldo_inicial" type="number" min="0" step="0.01" value="{{ old('saldo_inicial', '50000') }}" required></div>
+                <button type="button" class="boton-caja" data-cerrar-modal="modal-apertura-caja">Cancelar</button><button type="submit" class="boton-caja boton-caja-principal">Confirmar apertura</button>
+            </form>
         </section>
     </div>
 
     <div id="modal-cierre-caja" class="modal-caja oculto" aria-hidden="true">
         <section class="modal-caja-contenido" role="dialog" aria-modal="true" aria-labelledby="titulo-cierre-caja">
             <div class="modal-caja-encabezado"><h2 id="titulo-cierre-caja">Cerrar caja</h2><button type="button" class="cerrar-modal-caja" data-cerrar-modal="modal-cierre-caja" aria-label="Cerrar">&times;</button></div>
-            <div class="caja-resumen-cierre"><div><span>Saldo inicial</span><strong>$50.000</strong></div><div><span>Ingresos</span><strong class="caja-monto ingreso">+$125.500</strong></div><div><span>Egresos</span><strong class="caja-monto egreso">-$42.300</strong></div><div><span>Saldo esperado</span><strong>$133.200</strong></div></div>
-            <div class="campo-caja"><label for="dinero-contado-caja">Dinero contado</label><input id="dinero-contado-caja" type="number" min="0" step="0.01" value="133200"></div>
-            <button type="button" class="boton-caja" data-cerrar-modal="modal-cierre-caja">Cancelar</button><button type="button" class="boton-caja boton-caja-principal" data-cerrar-modal="modal-cierre-caja">Confirmar cierre</button>
+            <div class="caja-resumen-cierre"><div><span>Saldo inicial</span><strong>${{ number_format($saldoInicial, 2, ',', '.') }}</strong></div><div><span>Ingresos</span><strong class="caja-monto ingreso">$0,00</strong></div><div><span>Egresos</span><strong class="caja-monto egreso">$0,00</strong></div><div><span>Saldo esperado</span><strong>${{ number_format($saldoEsperado, 2, ',', '.') }}</strong></div></div>
+            <form id="form-cierre-caja" method="POST" action="{{ route('caja.cerrar') }}" data-saldo-esperado="{{ number_format($saldoEsperado, 2, '.', '') }}">
+                @csrf
+                <div class="campo-caja"><label for="dinero-contado-caja">Dinero contado</label><input id="dinero-contado-caja" name="dinero_contado" type="number" min="0" step="0.01" value="{{ old('dinero_contado', number_format($saldoEsperado, 2, '.', '')) }}" required></div>
+                <div class="caja-resumen-cierre"><div><span>Diferencia</span><strong id="diferencia-cierre-caja">$0,00</strong></div></div>
+                <button type="button" class="boton-caja" data-cerrar-modal="modal-cierre-caja">Cancelar</button><button type="submit" class="boton-caja boton-caja-principal">Confirmar cierre</button>
+            </form>
         </section>
     </div>
 
@@ -167,14 +210,29 @@
             const filtroTipo = document.getElementById('filtro-tipo-caja');
             const filtroMedio = document.getElementById('filtro-medio-caja');
             const modales = document.querySelectorAll('.modal-caja');
+            const formularioCierre = document.getElementById('form-cierre-caja');
+            const dineroContado = document.getElementById('dinero-contado-caja');
+            const diferenciaCierre = document.getElementById('diferencia-cierre-caja');
 
             function dinero(valor) { return '$' + Number(valor).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+            function actualizarDiferencia() {
+                if (!formularioCierre || !dineroContado || !diferenciaCierre) return;
+
+                const saldoEsperado = Number(formularioCierre.dataset.saldoEsperado);
+                const contado = Number(dineroContado.value || 0);
+                const diferencia = Math.round((contado - saldoEsperado) * 100) / 100;
+                const signo = diferencia > 0 ? '+' : diferencia < 0 ? '-' : '';
+
+                diferenciaCierre.textContent = signo + dinero(Math.abs(diferencia));
+                diferenciaCierre.classList.toggle('caja-diferencia-negativa', diferencia < 0);
+                diferenciaCierre.classList.toggle('caja-diferencia-positiva', diferencia > 0);
+            }
             function renderizarMovimientos() {
                 const texto = busqueda.value.trim().toLowerCase();
                 const resultados = movimientos.filter(function (movimiento) {
                     return (!texto || (movimiento.concepto + ' ' + movimiento.medio).toLowerCase().includes(texto)) && (filtroTipo.value === 'Todos' || movimiento.tipo === filtroTipo.value) && (filtroMedio.value === 'Todos' || movimiento.medio === filtroMedio.value);
                 });
-                filas.innerHTML = resultados.length ? resultados.map(function (movimiento) { const ingreso = movimiento.tipo === 'Ingreso'; return '<tr><td>' + movimiento.fecha + '</td><td>' + movimiento.concepto + '</td><td><span class="caja-tipo ' + (ingreso ? 'ingreso' : 'egreso') + '">' + movimiento.tipo + '</span></td><td>' + movimiento.medio + '</td><td class="caja-monto ' + (ingreso ? 'ingreso' : 'egreso') + '">' + (ingreso ? '+' : '-') + dinero(movimiento.monto) + '</td><td><button type="button" class="caja-accion-ojo" data-movimiento="' + movimiento.id + '" aria-label="Ver movimiento">&#128065;</button></td></tr>'; }).join('') : '<tr><td colspan="6" class="caja-vacia">No hay movimientos que coincidan con los filtros.</td></tr>';
+                filas.innerHTML = resultados.length ? resultados.map(function (movimiento) { const ingreso = movimiento.tipo === 'Ingreso'; return '<tr><td>' + movimiento.fecha + '</td><td>' + movimiento.concepto + '</td><td><span class="caja-tipo ' + (ingreso ? 'ingreso' : 'egreso') + '">' + movimiento.tipo + '</span></td><td>' + movimiento.medio + '</td><td class="caja-monto ' + (ingreso ? 'ingreso' : 'egreso') + '">' + (ingreso ? '+' : '-') + dinero(movimiento.monto) + '</td><td><button type="button" class="caja-accion-ojo" data-movimiento="' + movimiento.id + '" aria-label="Ver movimiento" title="Ver detalle">&#128065;</button></td></tr>'; }).join('') : '<tr><td colspan="6" class="caja-vacia">No hay movimientos que coincidan con los filtros.</td></tr>';
             }
             function abrir(id) { const modal = document.getElementById(id); if (modal) { modal.classList.remove('oculto'); modal.setAttribute('aria-hidden', 'false'); } }
             function cerrar(id) { const modal = document.getElementById(id); if (modal) { modal.classList.add('oculto'); modal.setAttribute('aria-hidden', 'true'); } }
@@ -183,8 +241,10 @@
             modales.forEach(function (modal) { modal.addEventListener('click', function (event) { if (event.target === modal) cerrar(modal.id); }); });
             document.addEventListener('keydown', function (event) { if (event.key === 'Escape') modales.forEach(function (modal) { if (!modal.classList.contains('oculto')) cerrar(modal.id); }); });
             [busqueda, filtroTipo, filtroMedio].forEach(function (control) { control.addEventListener('input', renderizarMovimientos); control.addEventListener('change', renderizarMovimientos); });
+            if (dineroContado) dineroContado.addEventListener('input', actualizarDiferencia);
             filas.addEventListener('click', function (event) { const boton = event.target.closest('[data-movimiento]'); if (!boton) return; const movimiento = movimientos.find(function (item) { return String(item.id) === boton.dataset.movimiento; }); if (movimiento) { document.getElementById('contenido-detalle-movimiento-caja').innerHTML = '<p><strong>Concepto:</strong> ' + movimiento.concepto + '</p><p><strong>Fecha:</strong> ' + movimiento.fecha + '</p><p><strong>Tipo:</strong> ' + movimiento.tipo + '</p><p><strong>Medio:</strong> ' + movimiento.medio + '</p><p><strong>Monto:</strong> ' + dinero(movimiento.monto) + '</p><p><strong>Observación:</strong> ' + movimiento.observacion + '</p>'; abrir('modal-detalle-movimiento-caja'); } });
             document.getElementById('form-movimiento-caja').addEventListener('submit', function (event) { event.preventDefault(); cerrar('modal-movimiento-caja'); });
+            actualizarDiferencia();
             renderizarMovimientos();
         })();
     </script>
