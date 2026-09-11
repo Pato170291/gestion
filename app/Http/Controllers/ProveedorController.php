@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Proveedor;
+use App\Services\CuentaCorrienteService;
 use Illuminate\Http\Request;
 
 class ProveedorController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, CuentaCorrienteService $cuentaCorriente)
     {
         $buscar = $request->input('buscar');
 
@@ -27,6 +28,10 @@ class ProveedorController extends Controller
         }
 
         $proveedores->appends(['buscar' => $buscar]);
+
+        foreach ($proveedores as $proveedor) {
+            $proveedor->saldo = $cuentaCorriente->saldoProveedor($proveedor);
+        }
 
         if ($request->ajax()) {
             return view('partials.proveedores-ajax', compact('proveedores'));
@@ -50,7 +55,8 @@ class ProveedorController extends Controller
             'email' => 'nullable|email',
             'direccion' => 'nullable|max:255',
             'cuit' => ['nullable', 'max:20', 'regex:/^[0-9]+$/'],
-            'activo' => 'required|boolean',
+            'condicion_iva' => 'nullable|in:' . implode(',', Proveedor::CONDICIONES_IVA),
+            'activo' => 'nullable|boolean',
         ], [
             'empresa.required' => 'La empresa es obligatoria.',
             'empresa.max' => 'La empresa no puede superar los 255 caracteres.',
@@ -67,6 +73,8 @@ class ProveedorController extends Controller
             'cuit.max' => 'El CUIT no puede superar los 20 caracteres.',
             'cuit.regex' => 'El CUIT debe contener solamente números, sin guiones ni espacios.',
 
+            'condicion_iva.in' => 'La condición frente al IVA seleccionada no es válida.',
+
             'activo.required' => 'El estado es obligatorio.',
             'activo.boolean' => 'El estado seleccionado no es válido.',
         ]);
@@ -79,7 +87,8 @@ class ProveedorController extends Controller
         $proveedor->email = $request->input('email');
         $proveedor->direccion = $request->input('direccion');
         $proveedor->cuit = $request->input('cuit');
-        $proveedor->activo = $request->input('activo');
+        $proveedor->condicion_iva = $request->input('condicion_iva') ?: 'Consumidor Final';
+        $proveedor->activo = $request->input('activo', true);
 
         $proveedor->save();
 
@@ -108,6 +117,7 @@ class ProveedorController extends Controller
             'email' => 'nullable|email',
             'direccion' => 'nullable|max:255',
             'cuit' => ['nullable', 'max:20', 'regex:/^[0-9]+$/'],
+            'condicion_iva' => 'nullable|in:' . implode(',', Proveedor::CONDICIONES_IVA),
             'activo' => 'required|boolean',
         ], 
         
@@ -127,6 +137,8 @@ class ProveedorController extends Controller
             'cuit.max' => 'El CUIT no puede superar los 20 caracteres.',
             'cuit.regex' => 'El CUIT debe contener solamente números, sin guiones ni espacios.',
 
+            'condicion_iva.in' => 'La condición frente al IVA seleccionada no es válida.',
+
             'activo.required' => 'El estado es obligatorio.',
             'activo.boolean' => 'El estado seleccionado no es válido.',
         ]);
@@ -139,6 +151,7 @@ class ProveedorController extends Controller
         $proveedor->email = $request->input('email');
         $proveedor->direccion = $request->input('direccion');
         $proveedor->cuit = $request->input('cuit');
+        $proveedor->condicion_iva = $request->input('condicion_iva') ?: 'Consumidor Final';
         $proveedor->activo = $request->input('activo');
 
         $proveedor->save();
@@ -146,11 +159,49 @@ class ProveedorController extends Controller
         return redirect('/proveedores')->with('success', 'Proveedor actualizado exitosamente');
     }
 
-    public function destroy($id)
+    public function cambiarEstado($id)
     {
-        $proveedor = Proveedor::find($id);
-        $proveedor->delete();
+        $proveedor = Proveedor::findOrFail($id);
+        $proveedor->activo = !$proveedor->activo;
+        $proveedor->save();
 
-        return redirect('/proveedores')->with('success', 'Proveedor eliminado exitosamente');
+        return redirect('/proveedores')->with('success', $proveedor->activo
+            ? 'Proveedor activado correctamente.'
+            : 'Proveedor desactivado correctamente.');
+    }
+
+    public function cuentaCorriente($id, CuentaCorrienteService $cuentaCorriente)
+    {
+        $proveedor = Proveedor::findOrFail($id);
+        $resumen = $cuentaCorriente->resumenProveedor($proveedor);
+
+        return response()->json([
+            'id' => $proveedor->id,
+            'proveedor' => $proveedor->empresa,
+            'saldo' => $resumen['saldo'],
+            'movimientos' => array_slice($resumen['movimientos'], 0, 5),
+        ]);
+    }
+
+    public function registrarPago(Request $request, $id, CuentaCorrienteService $cuentaCorriente)
+    {
+        $validated = $request->validate([
+            'monto' => 'required|numeric|gt:0',
+            'medio' => 'required|in:efectivo,tarjeta,transferencia',
+            'observacion' => 'nullable|string',
+        ]);
+
+        $cuentaCorriente->registrarPagoProveedor(
+            Proveedor::findOrFail($id),
+            (float) $validated['monto'],
+            $validated['medio'],
+            $validated['observacion'] ?? null
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'El pago al proveedor fue registrado correctamente.']);
+        }
+
+        return redirect('/proveedores')->with('success', 'El pago al proveedor fue registrado correctamente.');
     }
 }

@@ -137,8 +137,33 @@
         }
 
         .cerrar-modal-cliente {
+            margin: 0;
             padding: 4px 10px;
             font-size: 22px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .cerrar-modal-cliente:hover {
+            background-color: #d0d0d0;
+        }
+
+        .cerrar-modal-producto {
+            margin: 0;
+            padding: 4px 10px;
+            font-size: 22px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .cerrar-modal-producto:hover {
+            background-color: #d0d0d0;
         }
 
         .campo-cliente-modal {
@@ -498,8 +523,8 @@
                         <input type="number" id="producto-precio-venta" name="precio_venta" min="0" step="0.01">
                     </div>
                     <div class="campo-producto-modal">
-                        <label for="producto-stock-inicial">Stock inicial</label>
-                        <input type="number" id="producto-stock-inicial" name="stock_actual" min="0" required>
+                        <label for="producto-stock-inicial">Cantidad inicial</label>
+                        <input type="number" id="producto-stock-inicial" name="cantidad_inicial" min="0" required>
                     </div>
                     <div class="campo-producto-modal">
                         <label for="producto-stock-minimo">Stock mínimo (opcional)</label>

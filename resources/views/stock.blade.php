@@ -38,10 +38,13 @@
         cursor: pointer;
         font-size: 14px;
         font-weight: bold;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .boton-stock:hover {
         background: #1d4ed8;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        transform: translateY(-2px);
     }
 
     .boton-secundario {
@@ -198,16 +201,22 @@
     }
 
     .boton-ver {
-        border: 0;
-        background: transparent;
-        color: #2563eb;
+        display: inline-block;
+        padding: 6px 10px;
+        background-color: #eeeeee;
+        color: black;
+        border: 1px solid #cccccc;
+        border-radius: 4px;
         cursor: pointer;
-        font-size: 18px;
-        line-height: 1;
+        font-size: 14px;
+        line-height: normal;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .boton-ver:hover {
-        color: #1d4ed8;
+        background-color: #d7ebff;
+        box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);
+        transform: translateY(-2px);
     }
 
     .vacio-stock {
@@ -235,6 +244,27 @@
     .cantidad-ajuste {
         color: #996500;
         font-weight: bold;
+    }
+
+    .mensaje-exito-stock {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        z-index: 2000;
+    }
+
+    .mensaje-error-stock {
+        margin-bottom: 20px;
+        padding: 12px 16px;
+        border-radius: 6px;
+        border: 1px solid #f1aeb5;
+        background: #fde8e8;
+        color: #b42318;
     }
 
     .modal-stock {
@@ -282,12 +312,18 @@
     }
 
     .cerrar-modal-stock {
-        border: 0;
+        margin: 0;
+        padding: 4px 10px;
+        font-size: 22px;
         background: transparent;
-        color: #69727d;
+        border: none;
+        border-radius: 4px;
         cursor: pointer;
-        font-size: 25px;
-        line-height: 1;
+        transition: background-color 0.2s ease;
+    }
+
+    .cerrar-modal-stock:hover {
+        background-color: #d0d0d0;
     }
 
     .datos-producto-stock {
@@ -410,6 +446,20 @@
 </style>
 
 <div class="stock-pagina">
+    @if (session('success'))
+        <div id="mensaje-exito-stock" class="mensaje-exito-stock">✓ {{ session('success') }}</div>
+        <script>
+            setTimeout(function () {
+                var mensaje = document.getElementById('mensaje-exito-stock');
+                if (mensaje) mensaje.style.display = 'none';
+            }, 3000);
+        </script>
+    @endif
+
+    @if ($errors->any())
+        <div class="mensaje-error-stock">{{ $errors->first() }}</div>
+    @endif
+
     <div class="stock-encabezado">
         <div>
             <h1>Stock</h1>
@@ -422,22 +472,22 @@
     <section class="resumen-stock" aria-label="Resumen del stock">
         <article class="tarjeta-stock">
             <p>Productos con stock</p>
-            <strong>125</strong>
+            <strong>{{ $resumen['con_stock'] }}</strong>
             <small>Con unidades disponibles</small>
         </article>
         <article class="tarjeta-stock">
             <p>Stock bajo</p>
-            <strong>7</strong>
+            <strong>{{ $resumen['bajo'] }}</strong>
             <small>En el límite o por debajo</small>
         </article>
         <article class="tarjeta-stock">
             <p>Sin stock</p>
-            <strong>3</strong>
+            <strong>{{ $resumen['sin_stock'] }}</strong>
             <small>Sin unidades disponibles</small>
         </article>
         <article class="tarjeta-stock">
             <p>Unidades totales</p>
-            <strong>1.284</strong>
+            <strong>{{ number_format($resumen['unidades_totales'], 0, ',', '.') }}</strong>
             <small>Sumatoria del inventario</small>
         </article>
     </section>
@@ -474,30 +524,28 @@
                 </tr>
             </thead>
             <tbody>
-                <tr data-producto="Coca Cola 2L" data-estado="normal" data-stock="15" data-minimo="5" data-codigo="001">
-                    <td class="nombre-producto-stock">Coca Cola 2L</td>
-                    <td class="codigo-producto">001</td>
-                    <td>15</td>
-                    <td>5</td>
-                    <td><span class="estado-stock estado-normal">Normal</span></td>
-                    <td><button type="button" class="boton-ver" data-producto="Coca Cola 2L" data-stock="15" data-minimo="5" aria-label="Ver detalle de Coca Cola 2L" title="Ver detalle">&#128065;</button></td>
-                </tr>
-                <tr data-producto="Yerba 1kg" data-estado="bajo" data-stock="3" data-minimo="5" data-codigo="002">
-                    <td class="nombre-producto-stock">Yerba 1kg</td>
-                    <td class="codigo-producto">002</td>
-                    <td>3</td>
-                    <td>5</td>
-                    <td><span class="estado-stock estado-bajo">Stock bajo</span></td>
-                    <td><button type="button" class="boton-ver" data-producto="Yerba 1kg" data-stock="3" data-minimo="5" aria-label="Ver detalle de Yerba 1kg" title="Ver detalle">&#128065;</button></td>
-                </tr>
-                <tr data-producto="Azúcar 1kg" data-estado="sin-stock" data-stock="0" data-minimo="3" data-codigo="003">
-                    <td class="nombre-producto-stock">Azúcar 1kg</td>
-                    <td class="codigo-producto">003</td>
-                    <td>0</td>
-                    <td>3</td>
-                    <td><span class="estado-stock estado-sin-stock">Sin stock</span></td>
-                    <td><button type="button" class="boton-ver" data-producto="Azúcar 1kg" data-stock="0" data-minimo="3" aria-label="Ver detalle de Azúcar 1kg" title="Ver detalle">&#128065;</button></td>
-                </tr>
+                @forelse ($productos as $producto)
+                    @php
+                        $estadoTexto = match ($producto->estado_stock) {
+                            'normal' => 'Normal',
+                            'bajo' => 'Stock bajo',
+                            default => 'Sin stock',
+                        };
+                        $codigo = str_pad($producto->id, 3, '0', STR_PAD_LEFT);
+                    @endphp
+                    <tr data-producto="{{ $producto->nombre }}" data-estado="{{ $producto->estado_stock }}" data-stock="{{ $producto->stock_calculado }}" data-minimo="{{ $producto->stock_minimo }}" data-codigo="{{ $codigo }}">
+                        <td class="nombre-producto-stock">{{ $producto->nombre }}</td>
+                        <td class="codigo-producto">{{ $codigo }}</td>
+                        <td>{{ $producto->stock_calculado }}</td>
+                        <td>{{ $producto->stock_minimo }}</td>
+                        <td><span class="estado-stock estado-{{ $producto->estado_stock }}">{{ $estadoTexto }}</span></td>
+                        <td><button type="button" class="boton-ver" data-producto-id="{{ $producto->id }}" data-producto="{{ $producto->nombre }}" data-stock="{{ $producto->stock_calculado }}" data-minimo="{{ $producto->stock_minimo }}" aria-label="Ver detalle de {{ $producto->nombre }}" title="Ver detalle">&#128065;</button></td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6">No hay productos registrados.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
         <div id="inventario-vacio" class="vacio-stock">No hay productos que coincidan con la búsqueda.</div>
@@ -506,7 +554,6 @@
     <section class="seccion-stock">
         <div class="seccion-encabezado">
             <h2>Historial de movimientos</h2>
-            <button type="button" class="boton-stock boton-secundario" data-abrir-modal="movimiento">+ Movimiento</button>
         </div>
 
         <table class="tabla-stock historial-tabla">
@@ -517,14 +564,22 @@
                     <th>Tipo</th>
                     <th>Cantidad</th>
                     <th>Motivo</th>
-                    <th>Referencia</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td>09/09/2026</td><td>Coca Cola 2L</td><td>Entrada</td><td class="cantidad-entrada">+10</td><td>Compra</td><td>Compra #25</td></tr>
-                <tr><td>09/09/2026</td><td>Coca Cola 2L</td><td>Salida</td><td class="cantidad-salida">-2</td><td>Venta</td><td>Venta #40</td></tr>
-                <tr><td>09/09/2026</td><td>Yerba 1kg</td><td>Salida</td><td class="cantidad-salida">-1</td><td>Venta</td><td>Venta #41</td></tr>
-                <tr><td>08/09/2026</td><td>Azúcar 1kg</td><td>Ajuste</td><td class="cantidad-ajuste">+1</td><td>Corrección de inventario</td><td>Ajuste manual</td></tr>
+                @forelse ($movimientos as $movimiento)
+                    <tr>
+                        <td>{{ $movimiento->fecha->format('d/m/Y') }}</td>
+                        <td>{{ $movimiento->producto->nombre ?? '-' }}</td>
+                        <td>{{ ucfirst($movimiento->tipo) }}</td>
+                        <td class="cantidad-{{ $movimiento->tipo }}">{{ $movimiento->cantidad_texto }}</td>
+                        <td>{{ $movimiento->motivo }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5">Todavía no hay movimientos registrados.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </section>
@@ -548,19 +603,17 @@
         <div class="modal-seccion-stock">
             <h3>Historial de movimientos</h3>
             <table class="tabla-stock">
-                <thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th><th>Referencia</th></tr></thead>
-                <tbody>
-                    <tr><td>09/09/2026</td><td>Entrada</td><td class="cantidad-entrada">+10</td><td>Compra</td><td>Compra #25</td></tr>
-                    <tr><td>09/09/2026</td><td>Salida</td><td class="cantidad-salida">-2</td><td>Venta</td><td>Venta #40</td></tr>
-                    <tr><td>08/09/2026</td><td>Ajuste</td><td class="cantidad-ajuste">+1</td><td>Corrección de inventario</td><td>Ajuste manual</td></tr>
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th></tr></thead>
+                <tbody id="movimientos-detalle-stock">
+                    <tr><td colspan="4">Sin movimientos registrados.</td></tr>
                 </tbody>
             </table>
         </div>
 
         <div class="acciones-movimiento">
-            <button type="button" class="boton-stock" data-abrir-modal="movimiento" data-tipo="Entrada">+ Entrada</button>
-            <button type="button" class="boton-stock" data-abrir-modal="movimiento" data-tipo="Salida">- Salida</button>
-            <button type="button" class="boton-stock boton-secundario" data-abrir-modal="movimiento" data-tipo="Ajuste">Ajustar stock</button>
+            <button type="button" class="boton-stock boton-secundario" data-abrir-modal="movimiento" data-tipo="entrada">+ Entrada</button>
+            <button type="button" class="boton-stock boton-secundario" data-abrir-modal="movimiento" data-tipo="salida">- Salida</button>
+            <button type="button" class="boton-stock boton-secundario" data-abrir-modal="movimiento" data-tipo="ajuste">Ajustar stock</button>
         </div>
     </div>
 </div>
@@ -570,54 +623,58 @@
         <div class="modal-encabezado-stock">
             <div>
                 <h2 id="titulo-movimiento-stock">Nuevo movimiento</h2>
-                <p>La registración de movimientos se habilitará próximamente.</p>
+                <p>Registrá una entrada, salida o ajuste manual de stock.</p>
             </div>
             <button type="button" class="cerrar-modal-stock" data-cerrar-modal="movimiento" aria-label="Cerrar formulario">&times;</button>
         </div>
 
-        <form class="formulario-movimiento" id="formulario-movimiento-stock">
+        <form class="formulario-movimiento" id="formulario-movimiento-stock" method="POST" action="{{ route('stock.movimientos.store') }}">
+            @csrf
             <div class="campo-movimiento">
                 <label for="tipo-movimiento-stock">Tipo de movimiento</label>
-                <select id="tipo-movimiento-stock" class="control-stock">
-                    <option>Entrada</option>
-                    <option>Salida</option>
-                    <option>Ajuste</option>
+                <select id="tipo-movimiento-stock" name="tipo" class="control-stock" required>
+                    <option value="entrada">Entrada</option>
+                    <option value="salida">Salida</option>
+                    <option value="ajuste">Ajuste</option>
                 </select>
             </div>
             <div class="campo-movimiento">
                 <label for="producto-movimiento-stock">Producto</label>
-                <select id="producto-movimiento-stock" class="control-stock">
-                    <option>Coca Cola 2L</option>
-                    <option>Yerba 1kg</option>
-                    <option>Azúcar 1kg</option>
+                <select id="producto-movimiento-stock" name="producto_id" class="control-stock" required>
+                    <option value="" disabled selected>Seleccionar producto</option>
+                    @foreach ($productos as $producto)
+                        <option value="{{ $producto->id }}">{{ $producto->nombre }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="campo-movimiento">
-                <label for="cantidad-movimiento-stock">Cantidad</label>
-                <input type="number" id="cantidad-movimiento-stock" class="control-stock" min="1" placeholder="Ej: 10">
+                <label for="cantidad-movimiento-stock" id="etiqueta-cantidad-movimiento-stock">Cantidad</label>
+                <input type="number" id="cantidad-movimiento-stock" name="cantidad" class="control-stock" min="0" step="1" placeholder="Ej: 10" required>
             </div>
             <div class="campo-movimiento">
                 <label for="motivo-movimiento-stock">Motivo</label>
-                <select id="motivo-movimiento-stock" class="control-stock">
-                    <option>Compra</option>
-                    <option>Venta</option>
-                    <option>Ajuste de inventario</option>
-                    <option>Devolución</option>
-                    <option>Merma</option>
-                    <option>Otro</option>
+                <select id="motivo-movimiento-stock" name="motivo" class="control-stock" required>
+                    <option value="Compra">Compra</option>
+                    <option value="Venta">Venta</option>
+                    <option value="Ajuste de inventario">Ajuste de inventario</option>
+                    <option value="Devolución">Devolución</option>
+                    <option value="Merma">Merma</option>
+                    <option value="Otro">Otro</option>
                 </select>
             </div>
             <div class="campo-movimiento">
-                <label for="observacion-movimiento-stock">Observación (opcional)</label>
-                <textarea id="observacion-movimiento-stock" class="control-stock" rows="3" placeholder="Agregar una observación"></textarea>
+                <label for="fecha-movimiento-stock">Fecha</label>
+                <input type="date" id="fecha-movimiento-stock" name="fecha" class="control-stock" value="{{ old('fecha', now()->toDateString()) }}" required>
             </div>
             <div class="acciones-modal-stock">
                 <button type="button" class="boton-stock boton-secundario" data-cerrar-modal="movimiento">Cancelar</button>
-                <button type="submit" class="boton-stock">Guardar</button>
+                <button type="submit" class="boton-stock boton-secundario">Guardar</button>
             </div>
         </form>
     </div>
 </div>
+
+<script id="movimientos-por-producto" type="application/json">{!! $movimientosPorProducto->toJson() !!}</script>
 
 <script>
     (function () {
@@ -628,6 +685,12 @@
         const modalDetalle = document.getElementById('modal-detalle-stock');
         const modalMovimiento = document.getElementById('modal-movimiento-stock');
         const tipoMovimiento = document.getElementById('tipo-movimiento-stock');
+        const productoMovimiento = document.getElementById('producto-movimiento-stock');
+        const etiquetaCantidad = document.getElementById('etiqueta-cantidad-movimiento-stock');
+        const cantidadMovimiento = document.getElementById('cantidad-movimiento-stock');
+        const movimientosPorProducto = JSON.parse(document.getElementById('movimientos-por-producto').textContent || '{}');
+        let modalPrevio = null;
+        let productoDetalleId = null;
 
         function aplicarFiltros() {
             const texto = busqueda.value.toLowerCase().trim();
@@ -649,6 +712,18 @@
                 modal.classList.remove('visible');
                 modal.setAttribute('aria-hidden', 'true');
             });
+            modalPrevio = null;
+        }
+
+        function cerrarModalMovimiento() {
+            modalMovimiento.classList.remove('visible');
+            modalMovimiento.setAttribute('aria-hidden', 'true');
+
+            if (modalPrevio) {
+                modalPrevio.classList.add('visible');
+                modalPrevio.setAttribute('aria-hidden', 'false');
+                modalPrevio = null;
+            }
         }
 
         busqueda.addEventListener('input', aplicarFiltros);
@@ -656,9 +731,19 @@
 
         document.querySelectorAll('.boton-ver').forEach(function (boton) {
             boton.addEventListener('click', function () {
+                productoDetalleId = boton.dataset.productoId;
                 document.getElementById('titulo-detalle-stock').textContent = boton.dataset.producto;
                 document.getElementById('detalle-stock-actual').textContent = boton.dataset.stock + ' unidades';
                 document.getElementById('detalle-stock-minimo').textContent = boton.dataset.minimo + ' unidades';
+
+                const cuerpoHistorial = document.getElementById('movimientos-detalle-stock');
+                const movimientos = movimientosPorProducto[productoDetalleId] || [];
+                cuerpoHistorial.innerHTML = movimientos.length
+                    ? movimientos.map(function (movimiento) {
+                        return '<tr><td>' + movimiento.fecha + '</td><td>' + movimiento.tipo + '</td><td class="cantidad-' + movimiento.tipo_clase + '">' + movimiento.cantidad + '</td><td>' + movimiento.motivo + '</td></tr>';
+                    }).join('')
+                    : '<tr><td colspan="4">Sin movimientos registrados.</td></tr>';
+
                 modalDetalle.classList.add('visible');
                 modalDetalle.setAttribute('aria-hidden', 'false');
             });
@@ -666,30 +751,65 @@
 
         document.querySelectorAll('[data-abrir-modal="movimiento"]').forEach(function (boton) {
             boton.addEventListener('click', function () {
-                cerrarModales();
+                const modalOrigen = boton.closest('.modal-stock');
+                modalPrevio = (modalOrigen && modalOrigen !== modalMovimiento) ? modalOrigen : null;
+
+                if (modalPrevio) {
+                    modalPrevio.classList.remove('visible');
+                    modalPrevio.setAttribute('aria-hidden', 'true');
+                } else {
+                    cerrarModales();
+                }
+
                 if (boton.dataset.tipo) tipoMovimiento.value = boton.dataset.tipo;
+                if (modalOrigen === modalDetalle && productoDetalleId) productoMovimiento.value = productoDetalleId;
+                actualizarEtiquetaCantidad();
                 modalMovimiento.classList.add('visible');
                 modalMovimiento.setAttribute('aria-hidden', 'false');
             });
         });
 
         document.querySelectorAll('[data-cerrar-modal]').forEach(function (boton) {
-            boton.addEventListener('click', cerrarModales);
+            boton.addEventListener('click', function () {
+                if (boton.dataset.cerrarModal === 'movimiento') {
+                    cerrarModalMovimiento();
+                } else {
+                    cerrarModales();
+                }
+            });
         });
 
         document.querySelectorAll('.modal-stock').forEach(function (modal) {
             modal.addEventListener('click', function (evento) {
-                if (evento.target === modal) cerrarModales();
+                if (evento.target !== modal) return;
+                if (modal === modalMovimiento) {
+                    cerrarModalMovimiento();
+                } else {
+                    cerrarModales();
+                }
             });
         });
 
-        document.getElementById('formulario-movimiento-stock').addEventListener('submit', function (evento) {
-            evento.preventDefault();
-            cerrarModales();
-        });
+        function actualizarEtiquetaCantidad() {
+            if (tipoMovimiento.value === 'ajuste') {
+                etiquetaCantidad.textContent = 'Stock resultante';
+                cantidadMovimiento.min = '0';
+            } else {
+                etiquetaCantidad.textContent = 'Cantidad';
+                cantidadMovimiento.min = '1';
+            }
+        }
+
+        tipoMovimiento.addEventListener('change', actualizarEtiquetaCantidad);
+        actualizarEtiquetaCantidad();
 
         document.addEventListener('keydown', function (evento) {
-            if (evento.key === 'Escape') cerrarModales();
+            if (evento.key !== 'Escape') return;
+            if (modalMovimiento.classList.contains('visible')) {
+                cerrarModalMovimiento();
+            } else {
+                cerrarModales();
+            }
         });
     }());
 </script>

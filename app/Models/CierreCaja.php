@@ -5,40 +5,36 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Caja extends Model
+class CierreCaja extends Model
 {
     use HasFactory;
 
+    protected $table = 'cierres_caja';
+
     protected $fillable = [
+        'caja_id',
         'fecha',
         'saldo_inicial',
-        'estado',
-        'ingresos',
-        'egresos',
-        'saldo_final',
+        'total_ingresos',
+        'total_egresos',
+        'saldo_esperado',
         'dinero_contado',
         'diferencia',
-        'fecha_cierre',
+        'estado',
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'saldo_inicial' => 'decimal:2',
-        'ingresos' => 'decimal:2',
-        'egresos' => 'decimal:2',
-        'saldo_final' => 'decimal:2',
+        'total_ingresos' => 'decimal:2',
+        'total_egresos' => 'decimal:2',
+        'saldo_esperado' => 'decimal:2',
         'dinero_contado' => 'decimal:2',
         'diferencia' => 'decimal:2',
-        'fecha_cierre' => 'datetime',
     ];
 
-    public function movimientos()
+    public function caja()
     {
-        return $this->hasMany(MovimientoCaja::class);
-    }
-
-    public function cierre()
-    {
-        return $this->hasOne(CierreCaja::class);
+        return $this->belongsTo(Caja::class);
     }
 }

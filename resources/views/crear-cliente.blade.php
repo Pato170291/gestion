@@ -35,6 +35,14 @@
             font: inherit;
         }
 
+        .campo-cliente select {
+            max-width: 500px;
+            padding: 9px 10px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            font: inherit;
+        }
+
         .boton-cliente {
             padding: 9px 14px;
             background: #eeeeee;
@@ -103,6 +111,20 @@
             <div class="campo-cliente">
                 <label for="email">Email (opcional)</label>
                 <input type="email" id="email" name="email" value="{{ old('email') }}">
+            </div>
+
+            <div class="campo-cliente">
+                <label for="cuit">CUIT (opcional)</label>
+                <input type="text" id="cuit" name="cuit" value="{{ old('cuit') }}">
+            </div>
+
+            <div class="campo-cliente">
+                <label for="condicion_iva">Condición frente al IVA</label>
+                <select id="condicion_iva" name="condicion_iva">
+                    @foreach (\App\Models\Cliente::CONDICIONES_IVA as $condicion)
+                        <option value="{{ $condicion }}" {{ old('condicion_iva', 'Consumidor Final') === $condicion ? 'selected' : '' }}>{{ $condicion }}</option>
+                    @endforeach
+                </select>
             </div>
         </fieldset>
 

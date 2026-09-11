@@ -29,7 +29,8 @@
         .modal-proveedor-contenido { width: min(620px, 100%); max-height: 90vh; padding: 28px; overflow-y: auto; background: white; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); }
         .modal-proveedor-encabezado { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
         .modal-proveedor-encabezado h2 { margin: 0; }
-        .cerrar-modal-proveedor { padding: 4px 10px; font-size: 22px; }
+        .cerrar-modal-proveedor { margin: 0; padding: 4px 10px; font-size: 22px; background: transparent; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; }
+        .cerrar-modal-proveedor:hover { background-color: #d0d0d0; }
         .errores-formulario { margin-bottom: 24px; padding: 14px 18px; border: 1px solid #dc3545; background: #f8d7da; color: #842029; }
         .errores-formulario p { margin: 0 0 6px; }
         .errores-formulario p:last-child { margin-bottom: 0; }
@@ -84,8 +85,9 @@
             </div>
 
             <div class="campo-producto">
-                <label for="stock-actual">Stock inicial</label>
-                <input type="number" id="stock-actual" name="stock_actual" value="{{ old('stock_actual', $producto->stock_actual) }}" min="0" required>
+                <label>Stock actual</label>
+                <input type="text" value="{{ $stockActual }}" disabled>
+                <small>El stock se gestiona desde el módulo Stock (Entradas, Salidas y Ajustes).</small>
             </div>
 
             <div class="campo-producto">

@@ -23,12 +23,17 @@ class ProductoController extends Controller
                     ->orWhere('proveedor', 'like', "%{$buscar}%")
                     ->orWhere('precio_compra', 'like', "%{$buscar}%")
                     ->orWhere('precio_venta', 'like', "%{$buscar}%")
-                    ->orWhere('stock_actual', 'like', "%{$buscar}%")
                     ->orWhere('stock_minimo', 'like', "%{$buscar}%");
             });
         }
 
         $productos = $consulta->paginate(6)->appends(['buscar' => $buscar]);
+
+        $productos->getCollection()->transform(function (Producto $producto) {
+            $producto->stock_calculado = $producto->calcularStockActual();
+
+            return $producto;
+        });
 
         if ($request->ajax()) {
             return view('partials.productos-ajax', compact('productos'));
@@ -52,7 +57,7 @@ class ProductoController extends Controller
             'descripcion' => 'nullable|string',
             'precio_compra' => 'required|numeric|min:0',
             'precio_venta' => 'nullable|numeric|min:0',
-            'stock_actual' => 'required|integer|min:0',
+            'cantidad_inicial' => 'required|integer|min:0',
             'stock_minimo' => 'nullable|integer|min:0',
             'unidad' => 'nullable|string|max:255',
             'proveedor' => 'nullable|string|max:255',
@@ -66,15 +71,26 @@ class ProductoController extends Controller
         $producto->descripcion = $validated['descripcion'] ?? null;
         $producto->precio_compra = $validated['precio_compra'];
         $producto->precio_venta = $validated['precio_venta'] ?? 0;
-        $producto->stock_actual = $validated['stock_actual'] ?? 0;
         $producto->stock_minimo = $validated['stock_minimo'] ?? 1;
         $producto->unidad = $validated['unidad'] ?? 'Unidad';
         $producto->proveedor = $validated['proveedor'] ?? null;
+        $producto->activo = true;
         $producto->tiene_vencimiento = $validated['tiene_vencimiento'];
         $producto->fecha_vencimiento = $validated['tiene_vencimiento']
             ? ($validated['fecha_vencimiento'] ?? null)
             : null;
         $producto->save();
+
+        // La cantidad inicial no se guarda como columna: genera directamente el movimiento de entrada en Stock.
+        $cantidadInicial = (int) ($validated['cantidad_inicial'] ?? 0);
+        if ($cantidadInicial > 0) {
+            $producto->movimientosStock()->create([
+                'tipo' => 'entrada',
+                'cantidad' => $cantidadInicial,
+                'motivo' => 'Stock inicial',
+                'fecha' => now()->toDateString(),
+            ]);
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -86,20 +102,24 @@ class ProductoController extends Controller
         return redirect('/productos')->with('success', 'Producto creado correctamente.');
     }
 
-    public function destroy($id)
+    public function cambiarEstado($id)
     {
         $producto = Producto::findOrFail($id);
-        $producto->delete();
+        $producto->activo = !$producto->activo;
+        $producto->save();
 
-        return redirect('/productos')->with('success', 'Producto eliminado correctamente.');
+        return redirect('/productos')->with('success', $producto->activo
+            ? 'Producto activado correctamente.'
+            : 'Producto desactivado correctamente.');
     }
 
     public function edit($id)
     {
         $producto = Producto::findOrFail($id);
         $proveedores = Proveedor::orderBy('empresa')->get();
+        $stockActual = $producto->calcularStockActual();
 
-        return view('editar-producto', compact('producto', 'proveedores'));
+        return view('editar-producto', compact('producto', 'proveedores', 'stockActual'));
     }
 
     public function update(Request $request, $id)
@@ -112,7 +132,6 @@ class ProductoController extends Controller
             'descripcion' => 'nullable|string',
             'precio_compra' => 'required|numeric|min:0',
             'precio_venta' => 'nullable|numeric|min:0',
-            'stock_actual' => 'required|integer|min:0',
             'stock_minimo' => 'nullable|integer|min:0',
             'unidad' => 'nullable|string|max:255',
             'proveedor' => 'nullable|string|max:255',
@@ -125,7 +144,6 @@ class ProductoController extends Controller
         $producto->descripcion = $validated['descripcion'] ?? null;
         $producto->precio_compra = $validated['precio_compra'];
         $producto->precio_venta = $validated['precio_venta'] ?? 0;
-        $producto->stock_actual = $validated['stock_actual'] ?? 0;
         $producto->stock_minimo = $validated['stock_minimo'] ?? 1;
         $producto->unidad = $validated['unidad'] ?? 'Unidad';
         $producto->proveedor = $validated['proveedor'] ?? null;

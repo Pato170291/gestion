@@ -15,12 +15,15 @@ class Compra extends Model
         'total',
         'total_pagado',
         'estado',
+        'motivo_anulacion',
+        'fecha_anulacion',
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'total' => 'decimal:2',
         'total_pagado' => 'decimal:2',
+        'fecha_anulacion' => 'datetime',
     ];
 
     public function detalles()
@@ -36,5 +39,20 @@ class Compra extends Model
     public function proveedor()
     {
         return $this->belongsTo(Proveedor::class);
+    }
+
+    public function movimientosCaja()
+    {
+        return $this->hasMany(MovimientoCaja::class);
+    }
+
+    public function reversionesCaja()
+    {
+        return $this->hasMany(MovimientoCaja::class, 'compra_anulada_id');
+    }
+
+    public function movimientosStock()
+    {
+        return $this->hasMany(MovimientoStock::class);
     }
 }

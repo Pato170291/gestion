@@ -39,6 +39,19 @@
             z-index: 1000;
         }
 
+        .mensaje-venta-error {
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            border: 1px solid #f1aeb5;
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .estado-venta-anulada {
+            color: #842029;
+            font-weight: bold;
+        }
+
         .buscar-venta {
             width: 400px;
             padding: 10px 12px;
@@ -168,8 +181,18 @@
         }
 
         .cerrar-modal-venta {
+            margin: 0;
             padding: 4px 10px;
             font-size: 22px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .cerrar-modal-venta:hover {
+            background-color: #d0d0d0;
         }
 
         .detalle-venta-datos,
@@ -253,8 +276,19 @@
 
         .cerrar-formulario-venta,
         .cerrar-formulario-cliente {
+            margin: 0;
             padding: 4px 10px;
             font-size: 22px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .cerrar-formulario-venta:hover,
+        .cerrar-formulario-cliente:hover {
+            background-color: #d0d0d0;
         }
 
         .campo-venta,
@@ -339,6 +373,10 @@
                 document.getElementById('mensaje-venta-exito').style.display = 'none';
             }, 3000);
         </script>
+    @endif
+
+    @if (session('error'))
+        <div class="mensaje-venta-error">{{ session('error') }}</div>
     @endif
 
     <form id="form-busqueda-ventas">
@@ -518,6 +556,17 @@
         }
 
         let datosVentas = JSON.parse(document.getElementById('datos-ventas').textContent);
+
+        function confirmarAnulacion(formulario) {
+            if (!confirm('¿Está seguro de que desea anular esta venta? La venta permanecerá registrada en el historial.')) {
+                return false;
+            }
+
+            const motivo = prompt('Motivo de anulación (opcional):', '');
+            formulario.querySelector('input[name="motivo_anulacion"]').value = motivo || '';
+
+            return true;
+        }
 
         function formatearPrecioVenta(valor) {
             return '$' + Number(valor || 0).toLocaleString('es-AR', {

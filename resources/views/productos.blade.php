@@ -44,7 +44,7 @@
         .productos-tabla a,
         .productos-tabla button,
         #form-busqueda-productos button,
-        .detalle-producto button,
+        .detalle-producto button:not(.cerrar-detalle-producto),
         .enlace-crear-producto {
             display: inline-block;
             padding: 6px 10px;
@@ -125,6 +125,14 @@
             margin: 0;
             padding: 4px 10px;
             font-size: 22px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .cerrar-detalle-producto:hover {
+            background-color: #d0d0d0;
         }
 
         .detalle-producto-datos {
@@ -232,6 +240,7 @@
                 <th>Producto</th>
                 <th>Precio de venta</th>
                 <th>Stock</th>
+                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -327,7 +336,7 @@
             document.getElementById('detalle-descripcion').textContent = producto.descripcion || '-';
             document.getElementById('detalle-compra').textContent = formatearPrecio(producto.precio_compra);
             document.getElementById('detalle-venta').textContent = formatearPrecio(producto.precio_venta);
-            document.getElementById('detalle-stock').textContent = producto.stock_actual;
+            document.getElementById('detalle-stock').textContent = producto.stock_calculado;
             document.getElementById('detalle-stock-minimo').textContent = producto.stock_minimo;
             document.getElementById('detalle-unidad').textContent = producto.unidad;
             document.getElementById('detalle-proveedor').textContent = producto.proveedor || '-';

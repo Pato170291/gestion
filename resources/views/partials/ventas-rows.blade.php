@@ -4,24 +4,24 @@
         <td>{{ $venta->fecha->format('d/m/Y') }}</td>
         <td>{{ $venta->cliente ? $venta->cliente->nombre . ' ' . $venta->cliente->apellido : 'No es cliente' }}</td>
         <td>${{ number_format($venta->total, 2, ',', '.') }}</td>
-        <td>{{ $venta->estado }}</td>
+        <td class="{{ $venta->estado === 'Anulada' ? 'estado-venta-anulada' : '' }}">{{ $venta->estado }}</td>
         <td class="acciones-venta">
-            <a
-                href="/ventas/{{ $venta->id }}/editar"
-                aria-label="Editar venta {{ $venta->id }}"
-                title="Editar venta"
-            >&#9998;</a>
-            <form method="POST" action="/ventas/{{ $venta->id }}">
-                @csrf
-                @method('DELETE')
-
-                <button
-                    type="submit"
-                    aria-label="Eliminar venta {{ $venta->id }}"
-                    title="Eliminar venta"
-                    onclick="return confirm('¿Seguro que querés eliminar esta venta?')"
-                >&#128465;</button>
-            </form>
+            @if ($venta->estado !== 'Anulada')
+                <a
+                    href="/ventas/{{ $venta->id }}/editar"
+                    aria-label="Editar venta {{ $venta->id }}"
+                    title="Editar venta"
+                >&#9998;</a>
+                <form method="POST" action="{{ route('ventas.anular', $venta->id) }}" onsubmit="return confirmarAnulacion(this)">
+                    @csrf
+                    <input type="hidden" name="motivo_anulacion">
+                    <button
+                        type="submit"
+                        aria-label="Anular venta {{ $venta->id }}"
+                        title="Anular venta"
+                    >Anular</button>
+                </form>
+            @endif
             <button type="button" class="boton-ver-venta" data-venta="{{ $venta->id }}" aria-label="Ver detalle de venta" title="Ver detalle de venta">&#128065;</button>
         </td>
     </tr>

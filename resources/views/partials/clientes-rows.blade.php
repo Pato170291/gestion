@@ -4,25 +4,27 @@
         <td>{{ $cliente->apellido }}</td>
         <td>{{ $cliente->telefono }}</td>
         <td>{{ $cliente->email }}</td>
-        <td>$0</td>
+        <td>{{ $cliente->condicion_iva }}</td>
+        <td>${{ number_format($cliente->saldo ?? 0, 2, ',', '.') }}</td>
+        <td>{{ $cliente->activo ? 'Activo' : 'Inactivo' }}</td>
 
         <td>
             <a href="/clientes/{{ $cliente->id }}/editar" aria-label="Editar cliente" title="Editar cliente">
                 &#9998;
             </a>
 
-            <form method="POST" action="/clientes/{{ $cliente->id }}">
+            <form method="POST" action="{{ route('clientes.estado', $cliente->id) }}">
                 @csrf
-                @method('DELETE')
-
-                <button type="submit" aria-label="Eliminar cliente" title="Eliminar cliente" onclick="return confirm('¿Seguro que querés eliminar este cliente?')">
-                    &#128465;
+                <button type="submit" aria-label="{{ $cliente->activo ? 'Desactivar' : 'Activar' }} cliente" title="{{ $cliente->activo ? 'Desactivar' : 'Activar' }} cliente">
+                    {{ $cliente->activo ? 'Desactivar' : 'Activar' }}
                 </button>
             </form>
 
             <button
                 type="button"
                 class="boton-ver-cliente"
+                data-id="{{ $cliente->id }}"
+                data-cuenta-url="{{ route('clientes.cuenta-corriente', $cliente->id) }}"
                 data-nombre="{{ $cliente->nombre }} {{ $cliente->apellido }}"
                 aria-label="Ver detalle de {{ $cliente->nombre }} {{ $cliente->apellido }}"
                 title="Ver detalle"
@@ -33,7 +35,7 @@
     </tr>
 @empty
     <tr>
-        <td colspan="6">
+        <td colspan="8">
             No se encontraron clientes.
         </td>
     </tr>    

@@ -22,12 +22,15 @@
         #paginacion-compras a { background-color: #eee; color: black; }
         #paginacion-compras span { background-color: #ccc; color: black; }
         .mensaje-compra { position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); z-index: 1000; }
+        .mensaje-compra-error { margin-bottom: 20px; padding: 12px 16px; border: 1px solid #f1aeb5; background: #f8d7da; color: #842029; }
+        .estado-compra-anulada { color: #842029; font-weight: bold; }
         .modal-compra { position: fixed; inset: 0; display: flex; justify-content: flex-end; background: rgba(0, 0, 0, .35); z-index: 900; }
         .modal-compra.oculto { display: none; }
         .modal-compra-contenido { width: min(700px, 100%); height: 100%; padding: 30px; overflow-y: auto; background: white; box-shadow: -4px 0 14px rgba(0, 0, 0, .2); }
         .modal-compra-encabezado { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
         .modal-compra-encabezado h2 { margin: 0; }
-        .cerrar-modal-compra { padding: 4px 10px; font-size: 22px; }
+        .cerrar-modal-compra { margin: 0; padding: 4px 10px; font-size: 22px; background: transparent; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; }
+        .cerrar-modal-compra:hover { background-color: #d0d0d0; }
         .detalle-compra-datos, .detalle-compra-productos { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
         .detalle-compra-datos th, .detalle-compra-datos td, .detalle-compra-productos th, .detalle-compra-productos td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
         .detalle-compra-datos th { width: 48%; font-weight: normal; color: #555; }
@@ -45,6 +48,10 @@
                 document.getElementById('mensaje-compra').style.display = 'none';
             }, 3000);
         </script>
+    @endif
+
+    @if (session('error'))
+        <div class="mensaje-compra-error">{{ session('error') }}</div>
     @endif
 
     <form id="form-busqueda-compras">
@@ -88,6 +95,17 @@
         const paginacionCompras = document.getElementById('paginacion-compras');
         const modalCompra = document.getElementById('modal-compra');
         let datosCompras = JSON.parse(document.getElementById('datos-compras').textContent);
+
+        function confirmarAnulacionCompra(formulario) {
+            if (!confirm('¿Está seguro de que desea anular esta compra? La compra permanecerá registrada en el historial.')) {
+                return false;
+            }
+
+            const motivo = prompt('Motivo de anulación (opcional):', '');
+            formulario.querySelector('input[name="motivo_anulacion"]').value = motivo || '';
+
+            return true;
+        }
 
         function precioCompra(valor) { return '$' + Number(valor || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
         function fechaCompra(valor) { return valor ? valor.substring(0, 10).split('-').reverse().join('/') : '-'; }

@@ -117,6 +117,15 @@
             </div>
 
             <div class="campo-proveedor">
+                <label for="condicion_iva">Condición frente al IVA</label>
+                <select id="condicion_iva" name="condicion_iva">
+                    @foreach (\App\Models\Proveedor::CONDICIONES_IVA as $condicion)
+                        <option value="{{ $condicion }}" {{ old('condicion_iva', 'Consumidor Final') === $condicion ? 'selected' : '' }}>{{ $condicion }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="campo-proveedor">
                 <label for="activo">Estado</label>
                 <select id="activo" name="activo">
                     <option value="1" {{ old('activo', '1') == '1' ? 'selected' : '' }}>Activo</option>

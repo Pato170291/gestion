@@ -63,6 +63,15 @@
                 <label for="cuit">CUIT (opcional)</label>
                 <input type="text" id="cuit" name="cuit" value="{{ old('cuit', $proveedor->cuit) }}">
             </div>
+
+            <div class="campo-proveedor">
+                <label for="condicion_iva">Condición frente al IVA</label>
+                <select id="condicion_iva" name="condicion_iva">
+                    @foreach (\App\Models\Proveedor::CONDICIONES_IVA as $condicion)
+                        <option value="{{ $condicion }}" {{ old('condicion_iva', $proveedor->condicion_iva) === $condicion ? 'selected' : '' }}>{{ $condicion }}</option>
+                    @endforeach
+                </select>
+            </div>
         </fieldset>
 
         <fieldset class="grupo-proveedor">

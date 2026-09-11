@@ -48,7 +48,8 @@
     .modal-alta-rapida-contenido { width: min(760px, 100%); max-height: 90vh; overflow-y: auto; padding: 28px; background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
     .modal-alta-rapida-encabezado { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
     .modal-alta-rapida-encabezado h2 { margin: 0; }
-    .cerrar-modal-alta-rapida { padding: 4px 10px; font-size: 22px; }
+    .cerrar-modal-alta-rapida { margin: 0; padding: 4px 10px; font-size: 22px; background: transparent; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; }
+    .cerrar-modal-alta-rapida:hover { background-color: #d0d0d0; }
     .campo-alta-rapida { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
     .campo-alta-rapida input, .campo-alta-rapida select, .campo-alta-rapida textarea { width: 100%; max-width: 500px; padding: 9px 10px; border: 1px solid #ccc; border-radius: 4px; font: inherit; }
     .grupo-alta-rapida { margin: 0 0 18px; padding: 16px; border: 1px solid #ddd; background: #fafafa; }
@@ -110,7 +111,7 @@
                 <fieldset class="grupo-alta-rapida"><legend>Precios y stock</legend>
                     <div class="campo-alta-rapida"><label>Precio de compra</label><input type="number" name="precio_compra" min="0" step="0.01" required></div>
                     <div class="campo-alta-rapida"><label>Precio de venta (opcional)</label><input type="number" name="precio_venta" min="0" step="0.01"></div>
-                    <div class="campo-alta-rapida"><label>Stock inicial</label><input type="number" name="stock_actual" min="0" required></div>
+                    <div class="campo-alta-rapida"><label>Cantidad inicial</label><input type="number" name="cantidad_inicial" min="0" required></div>
                     <div class="campo-alta-rapida"><label>Stock mínimo (opcional)</label><input type="number" name="stock_minimo" min="0" value="1"></div>
                     <div class="campo-alta-rapida"><label>Unidad de medida</label><select name="unidad"><option value="Unidad">Unidad</option><option value="kg">Kilogramo</option><option value="litro">Litro</option><option value="caja">Caja</option></select></div>
                 </fieldset>

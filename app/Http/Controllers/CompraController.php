@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Compra;
 use App\Models\CompraDetalle;
 use App\Models\CompraPago;
+use App\Models\Caja;
+use App\Models\MovimientoCaja;
+use App\Models\MovimientoStock;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use Illuminate\Http\Request;
@@ -51,8 +54,16 @@ class CompraController extends Controller
     {
         $validated = $this->validarCompra($request);
         $datos = $this->prepararCompra($validated);
+        $montosCaja = $this->montosCaja($datos['montos']);
+        $caja = $this->cajaAbiertaParaPagos($montosCaja);
 
-        DB::transaction(function () use ($validated, $datos) {
+        if ($montosCaja && !$caja) {
+            return back()
+                ->withErrors(['formas_pago' => 'Para registrar una compra con pago en efectivo, tarjeta o transferencia debe haber una caja abierta.'])
+                ->withInput();
+        }
+
+        DB::transaction(function () use ($validated, $datos, $montosCaja, $caja) {
             $compra = Compra::create([
                 'fecha' => $validated['fecha'],
                 'proveedor_id' => $validated['proveedor_id'] ?? null,
@@ -62,6 +73,8 @@ class CompraController extends Controller
             ]);
 
             $this->guardarDetalleYPagos($compra, $datos);
+            $this->crearMovimientosEgreso($compra, $caja, $montosCaja);
+            $this->generarMovimientosStock($compra, $datos);
         });
 
         return redirect('/compras')->with('success', 'Compra guardada correctamente.');
@@ -77,6 +90,12 @@ class CompraController extends Controller
     public function edit($id)
     {
         $compra = Compra::with(['detalles', 'pagos'])->findOrFail($id);
+
+        if ($compra->estado === 'Anulada') {
+            return redirect('/compras')
+                ->with('error', 'Una compra anulada no se puede editar.');
+        }
+
         $proveedores = Proveedor::where('activo', true)->orderBy('empresa')->get();
         $productos = Producto::orderBy('nombre')->get();
 
@@ -86,10 +105,35 @@ class CompraController extends Controller
     public function update(Request $request, $id)
     {
         $compra = Compra::with(['detalles', 'pagos'])->findOrFail($id);
+
+        if ($compra->estado === 'Anulada') {
+            return redirect('/compras')
+                ->with('error', 'Una compra anulada no se puede editar.');
+        }
+
         $validated = $this->validarCompra($request);
         $datos = $this->prepararCompra($validated);
+        $montosCaja = $this->montosCaja($datos['montos']);
+        $caja = $this->cajaAbiertaParaPagos($montosCaja);
 
-        DB::transaction(function () use ($compra, $validated, $datos) {
+        if ($montosCaja && !$caja) {
+            return back()
+                ->withErrors(['formas_pago' => 'Para registrar una compra con pago en efectivo, tarjeta o transferencia debe haber una caja abierta.'])
+                ->withInput();
+        }
+
+        $movimientosExistentes = MovimientoCaja::with('caja')
+            ->where('compra_id', $compra->id)
+            ->get();
+
+        if ($movimientosExistentes->contains(function ($movimiento) {
+            return $movimiento->caja && $movimiento->caja->estado !== 'abierta';
+        })) {
+            return redirect('/compras')
+                ->with('error', 'No se puede editar una compra cuyos movimientos pertenecen a una caja cerrada.');
+        }
+
+        DB::transaction(function () use ($compra, $validated, $datos, $montosCaja, $caja) {
             $compra->update([
                 'fecha' => $validated['fecha'],
                 'proveedor_id' => $validated['proveedor_id'] ?? null,
@@ -100,18 +144,85 @@ class CompraController extends Controller
 
             $compra->detalles()->delete();
             $compra->pagos()->delete();
+            MovimientoCaja::where('compra_id', $compra->id)->delete();
+            MovimientoStock::where('compra_id', $compra->id)->delete();
             $this->guardarDetalleYPagos($compra, $datos);
+            $this->crearMovimientosEgreso($compra, $caja, $montosCaja);
+            $this->generarMovimientosStock($compra, $datos);
         });
 
         return redirect('/compras')->with('success', 'Compra actualizada correctamente.');
     }
 
-    public function destroy($id)
+    public function anular(Request $request, $id)
     {
         $compra = Compra::findOrFail($id);
-        $compra->delete();
 
-        return redirect('/compras')->with('success', 'Compra eliminada correctamente.');
+        if ($compra->estado === 'Anulada') {
+            return redirect('/compras')
+                ->with('error', 'La compra ya está anulada.');
+        }
+
+        $validated = $request->validate([
+            'motivo_anulacion' => 'nullable|string',
+        ]);
+
+        $movimientosOriginales = MovimientoCaja::where('compra_id', $compra->id)->get();
+        $caja = $movimientosOriginales->isNotEmpty()
+            ? $this->cajaAbiertaParaReversion()
+            : null;
+
+        if ($movimientosOriginales->isNotEmpty() && !$caja) {
+            return redirect('/compras')
+                ->with('error', 'No se puede anular esta compra porque tiene movimientos de Caja asociados y actualmente no hay una caja abierta para registrar la reversión.');
+        }
+
+        try {
+            DB::transaction(function () use ($id, $validated, $movimientosOriginales, $caja) {
+                $compra = Compra::lockForUpdate()->findOrFail($id);
+
+                if ($compra->estado === 'Anulada') {
+                    throw new \RuntimeException('La compra ya está anulada.');
+                }
+
+                if ($caja) {
+                    $caja = Caja::whereKey($caja->id)
+                        ->where('estado', 'abierta')
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$caja) {
+                        throw new \RuntimeException('No se puede anular esta compra porque la caja ya no está abierta para registrar la reversión.');
+                    }
+                }
+
+                $compra->update([
+                    'estado' => 'Anulada',
+                    'motivo_anulacion' => $validated['motivo_anulacion'] ?? null,
+                    'fecha_anulacion' => now(),
+                ]);
+
+                if ($caja) {
+                    foreach ($movimientosOriginales as $movimiento) {
+                        MovimientoCaja::create([
+                            'caja_id' => $caja->id,
+                            'compra_anulada_id' => $compra->id,
+                            'tipo' => 'ingreso',
+                            'concepto' => 'Anulación Compra #' . $compra->id,
+                            'medio' => $movimiento->medio,
+                            'monto' => $movimiento->monto,
+                            'observacion' => $validated['motivo_anulacion'] ?? null,
+                        ]);
+                    }
+                }
+
+                $this->revertirMovimientosStock($compra);
+            });
+        } catch (\RuntimeException $exception) {
+            return redirect('/compras')->with('error', $exception->getMessage());
+        }
+
+        return redirect('/compras')->with('success', 'La compra fue anulada correctamente.');
     }
 
     private function validarCompra(Request $request): array
@@ -194,6 +305,94 @@ class CompraController extends Controller
             $compra->pagos()->create([
                 'forma_pago' => $formaPago,
                 'monto' => $monto,
+            ]);
+        }
+    }
+
+    private function montosCaja(array $montos): array
+    {
+        return array_filter($montos, function ($monto, $medio) {
+            return $medio !== 'cuenta_corriente' && (float) $monto > 0;
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+
+    private function cajaAbiertaParaPagos(array $montosCaja): ?Caja
+    {
+        if (!$montosCaja) {
+            return null;
+        }
+
+        return Caja::whereDate('fecha', now()->toDateString())
+            ->where('estado', 'abierta')
+            ->first();
+    }
+
+    private function cajaAbiertaParaReversion(): ?Caja
+    {
+        return Caja::whereDate('fecha', now()->toDateString())
+            ->where('estado', 'abierta')
+            ->first();
+    }
+
+    private function crearMovimientosEgreso(Compra $compra, ?Caja $caja, array $montosCaja): void
+    {
+        if (!$caja) {
+            return;
+        }
+
+        foreach ($montosCaja as $medio => $monto) {
+            MovimientoCaja::create([
+                'caja_id' => $caja->id,
+                'compra_id' => $compra->id,
+                'tipo' => 'egreso',
+                'concepto' => 'Compra #' . $compra->id,
+                'medio' => $medio,
+                'monto' => $monto,
+            ]);
+        }
+    }
+
+    // "Otro" (producto_id null) no controla Stock: solo se generan entradas para productos reales del catálogo.
+    private function generarMovimientosStock(Compra $compra, array $datos): void
+    {
+        if ($datos['producto_id'] === null || $datos['cantidad'] <= 0) {
+            return;
+        }
+
+        MovimientoStock::create([
+            'producto_id' => $datos['producto_id'],
+            'compra_id' => $compra->id,
+            'tipo' => 'entrada',
+            'cantidad' => $datos['cantidad'],
+            'motivo' => 'Compra #' . $compra->id,
+            'fecha' => $compra->fecha,
+        ]);
+    }
+
+    // Genera el movimiento inverso (salida) de cada entrada original de la compra, sin borrar el historial.
+    private function revertirMovimientosStock(Compra $compra): void
+    {
+        $entradas = MovimientoStock::where('compra_id', $compra->id)
+            ->where('tipo', 'entrada')
+            ->lockForUpdate()
+            ->get();
+
+        $yaRevertido = MovimientoStock::where('compra_id', $compra->id)
+            ->where('tipo', 'salida')
+            ->exists();
+
+        if ($yaRevertido) {
+            return;
+        }
+
+        foreach ($entradas as $entrada) {
+            MovimientoStock::create([
+                'producto_id' => $entrada->producto_id,
+                'compra_id' => $compra->id,
+                'tipo' => 'salida',
+                'cantidad' => $entrada->cantidad,
+                'motivo' => 'Anulación Compra #' . $compra->id,
+                'fecha' => now()->toDateString(),
             ]);
         }
     }

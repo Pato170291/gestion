@@ -20,6 +20,10 @@
             <tr><th>Total</th><td>${{ number_format($compra->total, 2, ',', '.') }}</td></tr>
             <tr><th>Total pagado</th><td>${{ number_format($compra->total_pagado, 2, ',', '.') }}</td></tr>
             <tr><th>Estado</th><td>{{ $compra->estado }}</td></tr>
+            @if ($compra->estado === 'Anulada')
+                <tr><th>Fecha de anulación</th><td>{{ $compra->fecha_anulacion?->format('d/m/Y H:i') ?? '-' }}</td></tr>
+                <tr><th>Motivo de anulación</th><td>{{ $compra->motivo_anulacion ?: 'Sin motivo indicado' }}</td></tr>
+            @endif
         </tbody></table>
         <h2>Productos</h2>
         <table class="detalle-compra-productos"><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>

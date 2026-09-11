@@ -133,8 +133,18 @@
         }
 
         .cerrar-modal-proveedor {
+            margin: 0;
             padding: 4px 10px;
             font-size: 22px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .cerrar-modal-proveedor:hover {
+            background-color: #d0d0d0;
         }
 
         .campo-proveedor-modal {
@@ -252,8 +262,8 @@
             <legend>Stock</legend>
 
             <div class="campo-producto">
-                <label for="stock_actual">Stock inicial</label>
-                <input type="number" id="stock_actual" name="stock_actual" value="{{ old('stock_actual') }}" min="0" required>
+                <label for="cantidad_inicial">Cantidad inicial</label>
+                <input type="number" id="cantidad_inicial" name="cantidad_inicial" value="{{ old('cantidad_inicial') }}" min="0" required>
             </div>
 
             <div class="campo-producto">

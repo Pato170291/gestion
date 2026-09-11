@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
+use App\Models\Caja;
+use App\Models\MovimientoCaja;
 use App\Models\Producto;
 use App\Models\Venta;
 use App\Models\VentaDetalle;
@@ -115,6 +117,15 @@ class VentaController extends Controller
                 ->withInput();
         }
 
+        $montosCaja = $this->montosCaja($montos);
+        $caja = $this->cajaAbiertaParaPagos($montosCaja);
+
+        if ($montosCaja && !$caja) {
+            return back()
+                ->withErrors(['formas_pago' => 'Debe abrir la caja antes de registrar un pago.'])
+                ->withInput();
+        }
+
         $estado = $totalPagado >= $total
             ? 'Pagado'
             : ($totalPagado > 0 ? 'Parcial' : 'Pendiente');
@@ -139,7 +150,9 @@ class VentaController extends Controller
             $productoNombre,
             $cantidad,
             $precio,
-            $montos
+            $montos,
+            $montosCaja,
+            $caja
         ) {
             $venta = Venta::create([
                 'fecha' => $validated['fecha'],
@@ -165,6 +178,8 @@ class VentaController extends Controller
                     'monto' => $monto,
                 ]);
             }
+
+            $this->crearMovimientosIngreso($venta, $caja, $montosCaja);
         });
 
         return redirect('/ventas')
@@ -179,6 +194,11 @@ class VentaController extends Controller
     public function edit($id)
     {
         $venta = Venta::with(['detalles', 'pagos'])->findOrFail($id);
+
+        if ($venta->estado === 'Anulada') {
+            return redirect('/ventas')
+                ->with('error', 'Una venta anulada no se puede editar.');
+        }
 
         $clientes = Cliente::orderBy('nombre')
             ->orderBy('apellido')
@@ -196,6 +216,11 @@ class VentaController extends Controller
     public function update(Request $request, $id)
     {
         $venta = Venta::with(['detalles', 'pagos'])->findOrFail($id);
+
+        if ($venta->estado === 'Anulada') {
+            return redirect('/ventas')
+                ->with('error', 'Una venta anulada no se puede editar.');
+        }
 
         $validated = $request->validate([
             'fecha' => 'required|date',
@@ -257,6 +282,15 @@ class VentaController extends Controller
                 ->withInput();
         }
 
+        $montosCaja = $this->montosCaja($montos);
+        $caja = $this->cajaAbiertaParaPagos($montosCaja);
+
+        if ($montosCaja && !$caja) {
+            return back()
+                ->withErrors(['formas_pago' => 'Debe abrir la caja antes de registrar un pago.'])
+                ->withInput();
+        }
+
         $estado = $totalPagado >= $total
             ? 'Pagado'
             : ($totalPagado > 0 ? 'Parcial' : 'Pendiente');
@@ -272,6 +306,17 @@ class VentaController extends Controller
             $productoNombre = $producto->nombre;
         }
 
+        $movimientosExistentes = MovimientoCaja::with('caja')
+            ->where('venta_id', $venta->id)
+            ->get();
+
+        if ($movimientosExistentes->contains(function ($movimiento) {
+            return $movimiento->caja && $movimiento->caja->estado !== 'abierta';
+        })) {
+            return redirect('/ventas')
+                ->with('error', 'No se puede editar una venta cuyos movimientos pertenecen a una caja cerrada.');
+        }
+
         DB::transaction(function () use (
             $venta,
             $validated,
@@ -282,7 +327,9 @@ class VentaController extends Controller
             $productoNombre,
             $cantidad,
             $precio,
-            $montos
+            $montos,
+            $montosCaja,
+            $caja
         ) {
             $venta->update([
                 'fecha' => $validated['fecha'],
@@ -303,6 +350,7 @@ class VentaController extends Controller
             ]);
 
             $venta->pagos()->delete();
+            MovimientoCaja::where('venta_id', $venta->id)->delete();
 
             foreach ($montos as $formaPago => $monto) {
                 $venta->pagos()->create([
@@ -310,23 +358,105 @@ class VentaController extends Controller
                     'monto' => $monto,
                 ]);
             }
+
+            $this->crearMovimientosIngreso($venta, $caja, $montosCaja);
         });
 
         return redirect('/ventas')
             ->with('success', 'Venta actualizada correctamente.');
     }
 
-    public function destroy($id)
+    public function anular(Request $request, $id)
     {
         $venta = Venta::findOrFail($id);
 
-        DB::transaction(function () use ($venta) {
-            $venta->detalles()->delete();
-            $venta->pagos()->delete();
-            $venta->delete();
-        });
+        if ($venta->estado === 'Anulada') {
+            return redirect('/ventas')
+                ->with('error', 'La venta ya está anulada.');
+        }
+
+        $validated = $request->validate([
+            'motivo_anulacion' => 'nullable|string',
+        ]);
+
+        $montosPagados = $venta->pagos()->pluck('monto', 'forma_pago')->all();
+        $montosCaja = $this->montosCaja($montosPagados);
+        $caja = $this->cajaAbiertaParaPagos($montosCaja);
+
+        if ($montosCaja && !$caja) {
+            return redirect('/ventas')
+                ->with('error', 'Debe abrir la caja antes de anular una venta con pagos registrados.');
+        }
+
+        try {
+            DB::transaction(function () use ($id, $validated, $montosCaja, $caja) {
+                $venta = Venta::lockForUpdate()->findOrFail($id);
+
+                if ($venta->estado === 'Anulada') {
+                    throw new \RuntimeException('La venta ya está anulada.');
+                }
+
+                $venta->update([
+                'estado' => 'Anulada',
+                'motivo_anulacion' => $validated['motivo_anulacion'] ?? null,
+                'fecha_anulacion' => now(),
+                ]);
+
+                if ($caja) {
+                    foreach ($montosCaja as $medio => $monto) {
+                        MovimientoCaja::create([
+                            'caja_id' => $caja->id,
+                            'venta_anulada_id' => $venta->id,
+                            'tipo' => 'egreso',
+                            'concepto' => 'Anulación Venta #' . $venta->id,
+                            'medio' => $medio,
+                            'monto' => $monto,
+                            'observacion' => $validated['motivo_anulacion'] ?? null,
+                        ]);
+                    }
+                }
+            });
+        } catch (\RuntimeException $exception) {
+            return redirect('/ventas')->with('error', $exception->getMessage());
+        }
 
         return redirect('/ventas')
-            ->with('success', 'Venta eliminada correctamente.');
+            ->with('success', 'La venta fue anulada correctamente.');
+    }
+
+    private function montosCaja(array $montos): array
+    {
+        return array_filter($montos, function ($monto, $medio) {
+            return $medio !== 'cuenta_corriente' && (float) $monto > 0;
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+
+    private function cajaAbiertaParaPagos(array $montosCaja): ?Caja
+    {
+        if (!$montosCaja) {
+            return null;
+        }
+
+        return Caja::whereDate('fecha', now()->toDateString())
+            ->where('estado', 'abierta')
+            ->first();
+    }
+
+    private function crearMovimientosIngreso(Venta $venta, ?Caja $caja, array $montosCaja): void
+    {
+        if (!$caja) {
+            return;
+        }
+
+        foreach ($montosCaja as $medio => $monto) {
+            MovimientoCaja::create([
+                'caja_id' => $caja->id,
+                'venta_id' => $venta->id,
+                'tipo' => 'ingreso',
+                'concepto' => 'Venta #' . $venta->id,
+                'medio' => $medio,
+                'monto' => $monto,
+            ]);
+        }
     }
 }

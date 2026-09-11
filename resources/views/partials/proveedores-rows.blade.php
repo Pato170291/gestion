@@ -7,7 +7,8 @@
         <td>{{ $proveedor->email }}</td>
         <td>{{ $proveedor->direccion }}</td>
         <td>{{ $proveedor->cuit }}</td>
-        <td>$0</td>
+        <td>{{ $proveedor->condicion_iva }}</td>
+        <td>${{ number_format($proveedor->saldo ?? 0, 2, ',', '.') }}</td>
 
         <td>
             @if ($proveedor->activo)
@@ -22,18 +23,18 @@
                 &#9998;
             </a>
 
-            <form method="POST" action="/proveedores/{{ $proveedor->id }}">
+            <form method="POST" action="{{ route('proveedores.estado', $proveedor->id) }}">
                 @csrf
-                @method('DELETE')
-
-                <button type="submit" aria-label="Eliminar proveedor" title="Eliminar proveedor" onclick="return confirm('¿Seguro que querés eliminar este proveedor?')">
-                    &#128465;
+                <button type="submit" aria-label="{{ $proveedor->activo ? 'Desactivar' : 'Activar' }} proveedor" title="{{ $proveedor->activo ? 'Desactivar' : 'Activar' }} proveedor">
+                    {{ $proveedor->activo ? 'Desactivar' : 'Activar' }}
                 </button>
             </form>
 
             <button
                 type="button"
                 class="boton-ver-proveedor"
+                data-id="{{ $proveedor->id }}"
+                data-cuenta-url="{{ route('proveedores.cuenta-corriente', $proveedor->id) }}"
                 data-nombre="{{ $proveedor->empresa }}"
                 aria-label="Ver detalle de {{ $proveedor->empresa }}"
                 title="Ver detalle"
@@ -46,7 +47,7 @@
 @empty
 
     <tr>
-        <td colspan="9">
+        <td colspan="10">
             No hay proveedores registrados.
         </td>
     </tr>

@@ -8,4 +8,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Cliente extends Model
 {
     use HasFactory;
+
+    public const CONDICIONES_IVA = ['Consumidor Final', 'Monotributista', 'Responsable Inscripto', 'Exento'];
+
+    protected $casts = [
+        'activo' => 'boolean',
+    ];
+
+    public function pagosCuentaCorriente()
+    {
+        return $this->hasMany(PagoCuentaCorriente::class);
     }
+}
