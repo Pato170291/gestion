@@ -5,7 +5,26 @@
         <td>{{ $cliente->telefono }}</td>
         <td>{{ $cliente->email }}</td>
         <td>{{ $cliente->condicion_iva }}</td>
-        <td>${{ number_format($cliente->saldo ?? 0, 2, ',', '.') }}</td>
+        
+        <td>
+            @php
+                $saldo = (float) ($cliente->saldo ?? 0);
+            @endphp
+
+            @if ($saldo < 0)
+                <span style="color: #198754; font-weight: 600;">
+                    Saldo a favor: ${{ number_format(abs($saldo), 2, ',', '.') }}
+                </span>
+            @elseif ($saldo > 0)
+                <span style="color: #dc3545; font-weight: 600;">
+                Saldo a pagar: ${{ number_format($saldo, 2, ',', '.') }}
+                </span>
+            @else
+                <span>
+                    Saldo: $0,00
+                </span>
+            @endif
+        </td>
         <td>{{ $cliente->activo ? 'Activo' : 'Inactivo' }}</td>
 
         <td>

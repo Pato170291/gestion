@@ -412,8 +412,39 @@
             document.getElementById('detalle-cliente-telefono').textContent = datos.telefono || '-';
             document.getElementById('detalle-cliente-email').textContent = datos.email || '-';
             document.getElementById('detalle-cliente-condicion').textContent = datos.condicion_iva || '-';
-            document.querySelector('#detalle-cliente .saldo-destacado strong').textContent = formatoMoneda(datos.saldo);
-            document.querySelector('#detalle-cliente .saldo-final strong').textContent = formatoMoneda(datos.saldo);
+            
+            const saldo = Number(datos.saldo || 0);
+            const saldoDestacado = document.querySelector('#detalle-cliente .saldo-destacado');
+            const saldoDestacadoTitulo = saldoDestacado.querySelector('span');
+            const saldoDestacadoValor = saldoDestacado.querySelector('strong');
+
+            const saldoFinal = document.querySelector('#detalle-cliente .saldo-final');
+            const saldoFinalTitulo = saldoFinal.querySelector('span');
+            const saldoFinalValor = saldoFinal.querySelector('strong');
+
+            if (saldo < 0) {
+                saldoDestacadoTitulo.textContent = 'SALDO A FAVOR';
+                saldoDestacadoValor.textContent = formatoMoneda(Math.abs(saldo));
+                saldoDestacadoValor.style.color = '#198754';
+                saldoFinalTitulo.textContent = 'Saldo a favor';
+                saldoFinalValor.textContent = formatoMoneda(Math.abs(saldo));
+                saldoFinalValor.style.color = '#198754';
+            } else if (saldo > 0) {
+                saldoDestacadoTitulo.textContent = 'SALDO A PAGAR';
+                saldoDestacadoValor.textContent = formatoMoneda(saldo);
+                saldoDestacadoValor.style.color = '#dc3545';
+                saldoFinalTitulo.textContent = 'Saldo a pagar';
+                saldoFinalValor.textContent = formatoMoneda(saldo);
+                saldoFinalValor.style.color = '#dc3545';
+            } else {
+                saldoDestacadoTitulo.textContent = 'SALDO';
+                saldoDestacadoValor.textContent = '$0,00';
+                saldoDestacadoValor.style.color = '';
+                saldoFinalTitulo.textContent = 'Saldo';
+                saldoFinalValor.textContent = '$0,00';
+                saldoFinalValor.style.color = '';
+            }
+
             document.getElementById('movimientos-cliente').innerHTML = datos.movimientos.length ? datos.movimientos.map(function (movimiento) { return '<tr><td>' + movimiento.fecha + '</td><td>' + movimiento.concepto + '</td><td>$' + Number(movimiento.debe).toLocaleString('es-AR', { minimumFractionDigits: 2 }) + '</td><td>$' + Number(movimiento.haber).toLocaleString('es-AR', { minimumFractionDigits: 2 }) + '</td><td>$' + Number(movimiento.saldo).toLocaleString('es-AR', { minimumFractionDigits: 2 }) + '</td></tr>'; }).join('') : '<tr><td colspan="5" class="movimientos-vacio">No hay movimientos registrados.</td></tr>';
             detalleCliente.classList.remove('oculto');
             detalleCliente.setAttribute('aria-hidden', 'false');

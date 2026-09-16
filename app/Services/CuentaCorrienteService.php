@@ -23,15 +23,30 @@ class CuentaCorrienteService
             ->get();
 
         foreach ($ventas as $venta) {
-            $monto = (float) $venta->pagos
-                ->where('forma_pago', 'cuenta_corriente')
-                ->sum('monto');
-            if ($monto > 0) {
+            $montoCuentaCorriente = (float) $venta->pagos
+            ->where('forma_pago', 'cuenta_corriente')
+            ->sum('monto');
+
+            if ($montoCuentaCorriente > 0) {
+            $movimientos[] = [
+                'fecha' => $venta->fecha->format('d/m/Y'),
+                'orden' => $venta->fecha->format('Y-m-d') . '-' . $venta->id . '-cc',
+                'concepto' => 'Venta #' . $venta->id,
+                'debe' => $montoCuentaCorriente,
+                'haber' => 0,
+                ];
+            }
+
+            $montoSaldoAFavor = (float) $venta->pagos
+            ->where('forma_pago', 'saldo_a_favor')
+            ->sum('monto');
+
+            if ($montoSaldoAFavor > 0) {
                 $movimientos[] = [
                     'fecha' => $venta->fecha->format('d/m/Y'),
-                    'orden' => $venta->fecha->format('Y-m-d') . '-' . $venta->id,
-                    'concepto' => 'Venta #' . $venta->id,
-                    'debe' => $monto,
+                    'orden' => $venta->fecha->format('Y-m-d') . '-' . $venta->id . '-sf',
+                    'concepto' => 'Uso de saldo a favor - Venta #' . $venta->id,
+                    'debe' => $montoSaldoAFavor,
                     'haber' => 0,
                 ];
             }
@@ -61,15 +76,30 @@ class CuentaCorrienteService
             ->get();
 
         foreach ($compras as $compra) {
-            $monto = (float) $compra->pagos
-                ->where('forma_pago', 'cuenta_corriente')
-                ->sum('monto');
-            if ($monto > 0) {
+            $montoCuentaCorriente = (float) $compra->pagos
+            ->where('forma_pago', 'cuenta_corriente')
+            ->sum('monto');
+
+            if ($montoCuentaCorriente > 0) {
                 $movimientos[] = [
                     'fecha' => $compra->fecha->format('d/m/Y'),
-                    'orden' => $compra->fecha->format('Y-m-d') . '-' . $compra->id,
-                    'concepto' => 'Compra #' . $compra->id,
-                    'debe' => $monto,
+                'orden' => $compra->fecha->format('Y-m-d') . '-' . $compra->id . '-cc',
+                'concepto' => 'Compra #' . $compra->id,
+                'debe' => $montoCuentaCorriente,
+                'haber' => 0,
+                ];
+            }
+
+            $montoSaldoAFavor = (float) $compra->pagos
+            ->where('forma_pago', 'saldo_a_favor')
+            ->sum('monto');
+
+            if ($montoSaldoAFavor > 0) {
+                $movimientos[] = [
+                    'fecha' => $compra->fecha->format('d/m/Y'),
+                    'orden' => $compra->fecha->format('Y-m-d') . '-' . $compra->id . '-sf',
+                    'concepto' => 'Uso de saldo a favor - Compra #' . $compra->id,
+                    'debe' => $montoSaldoAFavor,
                     'haber' => 0,
                 ];
             }
@@ -161,6 +191,20 @@ class CuentaCorrienteService
     public function saldoProveedor(Proveedor $proveedor): float
     {
         return $this->saldo($this->resumenProveedor($proveedor));
+    }
+
+    public function saldoAFavorCliente(Cliente $cliente): float
+    {
+        $saldo = $this->saldoCliente($cliente);
+
+        return $saldo < 0 ? abs($saldo) : 0;
+    }
+
+    public function saldoAFavorProveedor(Proveedor $proveedor): float
+    {
+        $saldo = $this->saldoProveedor($proveedor);
+
+        return $saldo < 0 ? abs($saldo) : 0;
     }
 
     private function ordenarYCalcular(array $movimientos): array

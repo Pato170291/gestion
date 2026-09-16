@@ -11,6 +11,7 @@ class MovimientoStock extends Model
     protected $fillable = [
         'producto_id',
         'compra_id',
+        'venta_id',
         'tipo',
         'cantidad',
         'motivo',
@@ -30,6 +31,11 @@ class MovimientoStock extends Model
     public function compra()
     {
         return $this->belongsTo(Compra::class);
+    }
+
+    public function venta()
+    {
+        return $this->belongsTo(Venta::class);
     }
 
     public function getCantidadTextoAttribute(): string
