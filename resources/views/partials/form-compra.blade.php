@@ -79,26 +79,24 @@
     }
 
     .boton-compra {
-        display: inline-block;
-        padding: 6px 8px;
-        background-color: #eee;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        text-decoration: none;
-        color: #000;
-        margin-right: 2px;
-        transition:
-            background-color 0.2s ease,
-            box-shadow 0.2s ease,
-            transform 0.2s ease;
+        display: inline-block; 
+        padding: 11px 16px; 
+        background-color:  #2563eb; 
+        color: black; 
+        text-decoration: none; 
+        border: 0; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        margin-right: 5px; 
+        font-weight: bold; 
+        transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;   
     }
 
     .boton-compra:hover {
-        background-color: #d7ebff;
-        box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);
-        transform: translateY(-2px);
+        background: #1d4ed8 !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+        transform: translateY(-2px) !important;
     }
 
     .errores-formulario {

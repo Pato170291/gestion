@@ -5,16 +5,65 @@
 @section('content')
 
     <style>
+        
         .formulario-proveedor { max-width: 760px; }
-        .grupo-proveedor { margin: 0 0 24px; padding: 20px; border: 1px solid #dddddd; background: #fafafa; }
-        .campo-proveedor { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        
+        .grupo-proveedor { 
+            margin: 0 0 24px; 
+            padding: 20px; 
+            border: 1px solid #dddddd; 
+            background: #fafafa; 
+        }
+        
+        .campo-proveedor { display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            margin-bottom: 16px; 
+        }
+        
         .campo-proveedor:last-child { margin-bottom: 0; }
-        .campo-proveedor input, .campo-proveedor select { max-width: 500px; padding: 9px 10px; border: 1px solid #cccccc; border-radius: 4px; font: inherit; }
-        .boton-proveedor { padding: 9px 14px; background: #eeeeee; border: 1px solid #cccccc; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; color: black; }
-        .boton-proveedor:hover { background: #d7ebff; box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2); }
-        .errores-formulario { margin-bottom: 24px; padding: 14px 18px; border: 1px solid #dc3545; background: #f8d7da; color: #842029; }
+        
+        .campo-proveedor input, .campo-proveedor select {
+             max-width: 500px; 
+             padding: 9px 10px; 
+             border: 1px solid #cccccc; 
+             border-radius: 4px; 
+             font: inherit; 
+            }
+        
+        .boton-proveedor {
+            display: inline-block; 
+            padding: 11px 16px; 
+            background-color:  #2563eb; 
+            color: black; 
+            text-decoration: none; 
+            border: 0; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-right: 5px; 
+            font-weight: bold; 
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+         }    
+        
+         .boton-proveedor:hover {
+            background: #1d4ed8 !important;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+            transform: translateY(-2px) !important;
+          }
+        
+        .errores-formulario { 
+            margin-bottom: 24px; 
+            padding: 14px 18px; 
+            border: 1px solid #dc3545; 
+            background: #f8d7da; 
+            color: #842029; 
+        }
+        
         .errores-formulario p { margin: 0 0 6px; }
+        
         .errores-formulario p:last-child { margin-bottom: 0; }
+    
     </style>
 
     <h1>Editar proveedor</h1>

@@ -43,21 +43,123 @@
 @endphp
 
 <style>
-    .modal-alta-rapida { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0, 0, 0, .35); z-index: 900; }
+    
+    .modal-alta-rapida { 
+        position: fixed; 
+        inset: 0; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 20px; 
+        background: rgba(0, 0, 0, .35); 
+        z-index: 900; 
+    }
+    
     .modal-alta-rapida.oculto { display: none; }
-    .modal-alta-rapida-contenido { width: min(760px, 100%); max-height: 90vh; overflow-y: auto; padding: 28px; background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
-    .modal-alta-rapida-encabezado { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    
+    .modal-alta-rapida-contenido { 
+        width: min(760px, 100%); 
+        max-height: 90vh; 
+        overflow-y: auto; 
+        padding: 28px; 
+        background: #fff; 
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .25); 
+    }
+    
+    .modal-alta-rapida-encabezado { 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        margin-bottom: 24px; 
+    }
+    
     .modal-alta-rapida-encabezado h2 { margin: 0; }
-    .cerrar-modal-alta-rapida { margin: 0; padding: 4px 10px; font-size: 22px; background: transparent; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; }
-    .cerrar-modal-alta-rapida:hover { background-color: #d0d0d0; }
-    .campo-alta-rapida { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-    .campo-alta-rapida input, .campo-alta-rapida select, .campo-alta-rapida textarea { width: 100%; max-width: 500px; padding: 9px 10px; border: 1px solid #ccc; border-radius: 4px; font: inherit; }
-    .grupo-alta-rapida { margin: 0 0 18px; padding: 16px; border: 1px solid #ddd; background: #fafafa; }
-    .error-alta-rapida { display: none; margin-bottom: 18px; padding: 12px 16px; background: #f8d7da; border: 1px solid #f1aeb5; color: #842029; }
+    
+    .cerrar-modal-alta-rapida { 
+        margin: 0; 
+        padding: 4px 10px; 
+        font-size: 22px; 
+        background: transparent; 
+        border: none; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        transition: background-color 0.2s ease; 
+    }
+    
+    .cerrar-modal-alta-rapida:hover { 
+        background: #1d4ed8 !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+        transform: translateY(-2px) !important; 
+    }
+    
+    .campo-alta-rapida { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 6px; 
+        margin-bottom: 16px; 
+    }
+    
+    .campo-alta-rapida input, .campo-alta-rapida select, .campo-alta-rapida textarea { 
+        width: 100%; 
+        max-width: 500px; 
+        padding: 9px 10px; 
+        border: 1px solid #ccc; 
+        border-radius: 4px; 
+        font: inherit; 
+    }
+    
+    .grupo-alta-rapida {
+        margin: 0 0 18px; 
+        padding: 16px; 
+        border: 1px solid #ddd; 
+        background: #fafafa; 
+    }
+
+    .error-alta-rapida { 
+        display: none; 
+        margin-bottom: 18px; 
+        padding: 12px 16px; 
+        background: #f8d7da; 
+        border: 1px solid #f1aeb5; 
+        color: #842029; 
+    
+    }
+    
     .error-alta-rapida.visible { display: block; }
-    .boton-alta-rapida { display: inline-block; padding: 6px 8px; background: #eee; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; color: #000; margin-right: 2px; transition: background-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-    .boton-alta-rapida:hover { background: #d7ebff; box-shadow: 0 4px 10px rgba(0, 91, 170, .2); transform: translateY(-2px); }
-    .mensaje-alta-rapida { position: fixed; top: 20px; right: 20px; padding: 15px 20px; background: #28a745; border-radius: 8px; color: white; box-shadow: 0 4px 10px rgba(0, 0, 0, .2); z-index: 1000; }
+    
+    .boton-alta-rapida { 
+        display: inline-block; 
+        padding: 11px 16px; 
+        background-color:  #2563eb; 
+        color: black; 
+        text-decoration: none; 
+        border: 0; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        margin-right: 5px; 
+        font-weight: bold; 
+        transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; 
+    }
+    
+    .boton-alta-rapida:hover { 
+        background: #1d4ed8 !important; 
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important; 
+        transform: translateY(-2px) !important; 
+    }
+    
+    .mensaje-alta-rapida { 
+        position: fixed; 
+        top: 20px; 
+        right: 20px; 
+        padding: 15px 20px; 
+        background: #28a745; 
+        border-radius: 8px; 
+        color: white; 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, .2); 
+        z-index: 1000; 
+    }
+
 </style>
 
 @if ($mostrarCliente)

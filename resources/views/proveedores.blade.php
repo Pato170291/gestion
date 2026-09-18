@@ -42,7 +42,7 @@
         }
 
         th {
-            background-color: #eeeeee;
+            background-color: #83e7f2;
         }
 
         tr:nth-child(even) {
@@ -57,17 +57,25 @@
 
         a,
         button {
-            display: inline-block;
-            padding: 6px 10px;
-            background-color: #eeeeee;
-            color: black;
-            text-decoration: none;
-            border: 1px solid #cccccc;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 2px;
-            padding: 6px 8px;
+           display: inline-block; 
+            padding: 11px 16px; 
+            background-color:  #2563eb; 
+            color: black; 
+            text-decoration: none; 
+            border: 0; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-right: 5px; 
+            font-weight: bold; 
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        a:hover,
+        button:hover {
+            background: #1d4ed8 !important;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+            transform: translateY(-2px) !important;
         }
 
         form {

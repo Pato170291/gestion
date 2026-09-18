@@ -20,7 +20,7 @@
         }
 
         .ventas-tabla th {
-            background-color: #eeeeee;
+            background-color:  #83e7f2;
         }
 
         .ventas-tabla tr:nth-child(even) {
@@ -88,8 +88,18 @@
             margin-right: 2px;
         }
 
-        .enlace-crear-venta {
-            margin: 10px 0 20px;
+        .enlace-crear-venta { 
+            padding: 11px 16px; 
+            background-color:  #2563eb; 
+            color: black; 
+            text-decoration: none; 
+            border: 0; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-right: 5px;
+            margin-bottom: 15px;
+            font-weight: bold; 
             transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
@@ -97,14 +107,25 @@
         #form-busqueda-ventas button:hover,
         .acciones-venta a:hover,
         .acciones-venta button:hover {
-            background-color: #d7ebff;
-            box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);
-            transform: translateY(-2px);
+            background: #1d4ed8 !important;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+            transform: translateY(-2px) !important;
         }
 
         #form-busqueda-ventas button,
         .acciones-venta a,
         .acciones-venta button {
+            display: inline-block; 
+            padding: 11px 16px; 
+            background-color:  #2563eb; 
+            color: black; 
+            text-decoration: none; 
+            border: 0; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-right: 5px; 
+            font-weight: bold; 
             transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
@@ -192,7 +213,9 @@
         }
 
         .cerrar-modal-venta:hover {
-            background-color: #d0d0d0;
+            background: #1d4ed8 !important;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+            transform: translateY(-2px) !important;
         }
 
         .detalle-venta-datos,

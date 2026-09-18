@@ -30,30 +30,45 @@
     }
 
     .boton-stock {
-        border: 0;
-        border-radius: 6px;
-        padding: 11px 16px;
-        background: #2563eb;
-        color: white;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: bold;
+        display: inline-block; 
+        padding: 11px 16px; 
+        background-color:  #2563eb; 
+        color: black; 
+        text-decoration: none; 
+        border: 0; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        margin-right: 5px; 
+        font-weight: bold; 
         transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .boton-stock:hover {
-        background: #1d4ed8;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
-        transform: translateY(-2px);
+        background: #1d4ed8 !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+        transform: translateY(-2px) !important;
     }
 
     .boton-secundario {
-        background: #eef2f7;
-        color: #374151;
+        display: inline-block; 
+        padding: 11px 16px; 
+        background-color:  #2563eb; 
+        color: black; 
+        text-decoration: none; 
+        border: 0; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        margin-right: 5px; 
+        font-weight: bold; 
+        transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .boton-secundario:hover {
-        background: #e2e8f0;
+        background: #1d4ed8 !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+        transform: translateY(-2px) !important;
     }
 
     .resumen-stock {
@@ -157,7 +172,7 @@
     }
 
     .tabla-stock th {
-        background: #f8fafc;
+        background-color: #83e7f2;
         color: #69727d;
         font-size: 12px;
         font-weight: bold;
@@ -201,20 +216,22 @@
     }
 
     .boton-ver {
-        display: inline-block;
-        padding: 6px 10px;
-        background-color: #eeeeee;
-        color: black;
-        border: 1px solid #cccccc;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        line-height: normal;
+        display: inline-block; 
+        padding: 11px 16px; 
+        background-color:  #2563eb; 
+        color: black; 
+        text-decoration: none; 
+        border: 0; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        margin-right: 5px; 
+        font-weight: bold; 
         transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .boton-ver:hover {
-        background-color: #d7ebff;
+        background-color: #1d4ed8;
         box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);
         transform: translateY(-2px);
     }
@@ -312,18 +329,20 @@
     }
 
     .cerrar-modal-stock {
-        margin: 0;
-        padding: 4px 10px;
-        font-size: 22px;
-        background: transparent;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
+        margin: 0; 
+        padding: 4px 10px; 
+        font-size: 22px; 
+        background: transparent; 
+        border: none; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        transition: background-color 0.2s ease; 
     }
 
     .cerrar-modal-stock:hover {
-        background-color: #d0d0d0;
+        background: #1d4ed8 !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+        transform: translateY(-2px) !important;
     }
 
     .datos-producto-stock {

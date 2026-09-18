@@ -6,29 +6,126 @@
 
     <style>
         .formulario-venta { max-width: 760px; }
-        .grupo-venta { margin: 0 0 24px; padding: 20px; border: 1px solid #dddddd; background: #fafafa; }
-        .campo-venta { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+
+        .grupo-venta { 
+            margin: 0 0 24px; 
+            padding: 20px; 
+            border: 1px solid #dddddd; 
+            background: #fafafa; 
+        }
+        
+        .campo-venta { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            margin-bottom: 16px; 
+        }
+        
         .campo-venta:last-child { margin-bottom: 0; }
+        
         .campo-venta input,
-        .campo-venta select { max-width: 500px; padding: 9px 10px; border: 1px solid #cccccc; border-radius: 4px; font: inherit; }
+        
+        .campo-venta select { 
+            max-width: 500px; 
+            padding: 9px 10px; 
+            border: 1px solid #cccccc; 
+            border-radius: 4px; 
+            font: inherit; 
+        }
+        
         .campo-precio-venta { position: relative; }
-        .campo-precio-venta::before { position: absolute; left: 10px; bottom: 10px; z-index: 1; color: #555555; content: '$'; }
+        
+        .campo-precio-venta::before { 
+            position: absolute; 
+            left: 10px; 
+            bottom: 10px; 
+            z-index: 1; 
+            color: #555555; 
+            content: '$'; 
+        }
+        
         .campo-precio-venta input { padding-left: 26px; }
-        .boton-venta { padding: 9px 14px; background: #eeeeee; border: 1px solid #cccccc; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; color: black; }
-        .boton-venta:hover { background: #d7ebff; box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2); }
-        .errores-formulario { margin-bottom: 24px; padding: 14px 18px; border: 1px solid #dc3545; background: #f8d7da; color: #842029; }
+        
+        .boton-venta {
+            display: inline-block; 
+            padding: 11px 16px; 
+            background-color:  #2563eb; 
+            color: black; 
+            text-decoration: none; 
+            border: 0; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-right: 5px; 
+            font-weight: bold; 
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        
+        .boton-venta:hover { 
+            background: #1d4ed8 !important;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+            transform: translateY(-2px) !important;
+        }
+        
+        .errores-formulario { 
+            margin-bottom: 24px; 
+            padding: 14px 18px; 
+            border: 1px solid #dc3545; 
+            background: #f8d7da; 
+            color: #842029; 
+        }
+        
         .errores-formulario p { margin: 0 0 6px; }
+        
         .errores-formulario p:last-child { margin-bottom: 0; }
-        .formas-pago-opciones { display: grid; gap: 10px; margin-top: 8px; }
-        .forma-pago-opcion { display: flex; align-items: center; gap: 8px; }
-        .forma-pago-opcion input[type="checkbox"] { width: 17px; height: 17px; margin: 0; }
-        .selector-venta-linea { display: flex; align-items: flex-end; gap: 10px; }
+        
+        .formas-pago-opciones { 
+            display: grid; 
+            gap: 10px; 
+            margin-top: 8px; 
+        }
+        
+        .forma-pago-opcion { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        
+        .forma-pago-opcion input[type="checkbox"] { 
+            width: 17px; 
+            height: 17px; 
+            margin: 0; 
+        }
+        
+        .selector-venta-linea { 
+            display: flex; 
+            align-items: flex-end; 
+            gap: 10px; 
+        }
+        
         .selector-venta-linea .campo-venta { flex: 1; }
-        .selector-venta-linea .boton-venta { margin-bottom: 16px; white-space: nowrap; }
-        .error-forma-pago { display: none; margin-top: 8px; color: #842029; }
+        
+        .selector-venta-linea .boton-venta { 
+            margin-bottom: 16px; 
+            white-space: nowrap; 
+        }
+        
+        .error-forma-pago { 
+            display: none; 
+            margin-top: 8px; 
+            color: #842029; 
+        }
+        
         .error-forma-pago.visible { display: block; }
-        .montos-pago { display: grid; gap: 12px; margin-top: 16px; }
+        
+        .montos-pago { 
+            display: grid; 
+            gap: 12px; 
+            margin-top: 16px; 
+        }
+        
         .monto-pago.oculto { display: none; }
+    
     </style>
 
     @php
